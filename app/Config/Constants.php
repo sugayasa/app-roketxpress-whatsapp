@@ -1,5 +1,10 @@
 <?php
 
+require_once ROOTPATH . '../vendor/autoload.php';
+use Dotenv\Dotenv;
+$dotenv	=	Dotenv::createImmutable(ROOTPATH);
+$dotenv->load();
+
 /*
  | --------------------------------------------------------------------
  | App Namespace
@@ -157,23 +162,23 @@ $arrYear    =	array(
     array("ID"=>$lastYear, "VALUE"=>$lastYear)
 );
 
-defined('APP_NAME')                                     || define('APP_NAME', getenv('APP_NAME') ?: 'WhatsApp');
-defined('APP_NAME_FORMAL')                              || define('APP_NAME_FORMAL', getenv('APP_NAME_FORMAL') ?: 'WhatsApp');
-defined('APP_TIMEZONE')                                 || define('APP_TIMEZONE', getenv('APP_TIMEZONE') ?: 'Asia/Jakarta');
-defined('APP_MAIN_DATABASE_NAME')                       || define('APP_MAIN_DATABASE_NAME', getenv('APP_MAIN_DATABASE_NAME') ?: 'db_default');
-defined('MAX_INACTIVE_SESSION_MINUTES')                 || define('MAX_INACTIVE_SESSION_MINUTES', getenv('MAX_INACTIVE_SESSION_MINUTES') ?: 60);
+defined('APP_NAME')                                     || define('APP_NAME', $_ENV['APP_NAME'] ?: 'WhatsApp');
+defined('APP_NAME_FORMAL')                              || define('APP_NAME_FORMAL', $_ENV['APP_NAME_FORMAL'] ?: 'WhatsApp');
+defined('APP_TIMEZONE')                                 || define('APP_TIMEZONE', $_ENV['APP_TIMEZONE'] ?: 'Asia/Jakarta');
+defined('APP_MAIN_DATABASE_NAME')                       || define('APP_MAIN_DATABASE_NAME', $_ENV['APP_MAIN_DATABASE_NAME'] ?: 'db_default');
+defined('MAX_INACTIVE_SESSION_MINUTES')                 || define('MAX_INACTIVE_SESSION_MINUTES', $_ENV['MAX_INACTIVE_SESSION_MINUTES'] ?: 60);
 
 defined('PRODUCTION_URL')						        || define('PRODUCTION_URL', $productionURL);
-defined('BASE_URL')                                     || define('BASE_URL', getenv('BASE_URL') ?: 'https://example.com/');
-defined('BASE_URL_ADMIN_APPS')                          || define('BASE_URL_ADMIN_APPS', getenv('BASE_URL_ADMIN_APPS') ?: 'https://example.com/');
-defined('BASE_URL_MOBILE_APPS')                         || define('BASE_URL_MOBILE_APPS', getenv('BASE_URL_MOBILE_APPS') ?: 'https://example.com/');
-defined('BASE_URL_ASSETS')                              || define('BASE_URL_ASSETS', str_replace(array("http:", "https:"), "", getenv('BASE_URL_ASSETS') ?: 'https://example.com/'));
-defined('BASE_URL_ASSETS_FULL_PATH')                    || define('BASE_URL_ASSETS_FULL_PATH', BASE_URL_ASSETS.getenv('BASE_URL_ASSETS_PATH') ?: 'example.com/');
-defined('BASE_URL_ASSETS_IMG')                          || define('BASE_URL_ASSETS_IMG', BASE_URL_ASSETS_FULL_PATH.getenv('BASE_URL_ASSETS_IMG_PATH') ?: 'img/');
-defined('BASE_URL_ASSETS_CSS')                          || define('BASE_URL_ASSETS_CSS', BASE_URL_ASSETS_FULL_PATH.getenv('BASE_URL_ASSETS_CSS_PATH') ?: 'css/');
-defined('BASE_URL_ASSETS_JS')                           || define('BASE_URL_ASSETS_JS', BASE_URL_ASSETS_FULL_PATH.getenv('BASE_URL_ASSETS_JS_PATH') ?: 'js/');
-defined('BASE_URL_ASSETS_FONT')                         || define('BASE_URL_ASSETS_FONT', BASE_URL_ASSETS_FULL_PATH.getenv('BASE_URL_ASSETS_FONT_PATH') ?: 'font/');
-defined('BASE_URL_ASSETS_SOUND')                        || define('BASE_URL_ASSETS_SOUND', BASE_URL_ASSETS_FULL_PATH.getenv('BASE_URL_ASSETS_SOUND_PATH') ?: 'sound/');
+defined('BASE_URL')                                     || define('BASE_URL', $_ENV['BASE_URL'] ?: 'https://example.com/');
+defined('BASE_URL_ADMIN_APPS')                          || define('BASE_URL_ADMIN_APPS', $_ENV['BASE_URL_ADMIN_APPS'] ?: 'https://example.com/');
+defined('BASE_URL_MOBILE_APPS')                         || define('BASE_URL_MOBILE_APPS', $_ENV['BASE_URL_MOBILE_APPS'] ?: 'https://example.com/');
+defined('BASE_URL_ASSETS')                              || define('BASE_URL_ASSETS', str_replace(array("http:", "https:"), "", $_ENV['BASE_URL_ASSETS'] ?: 'https://example.com/'));
+defined('BASE_URL_ASSETS_FULL_PATH')                    || define('BASE_URL_ASSETS_FULL_PATH', BASE_URL_ASSETS.$_ENV['BASE_URL_ASSETS_PATH'] ?: 'example.com/');
+defined('BASE_URL_ASSETS_IMG')                          || define('BASE_URL_ASSETS_IMG', BASE_URL_ASSETS_FULL_PATH.$_ENV['BASE_URL_ASSETS_IMG_PATH'] ?: 'img/');
+defined('BASE_URL_ASSETS_CSS')                          || define('BASE_URL_ASSETS_CSS', BASE_URL_ASSETS_FULL_PATH.$_ENV['BASE_URL_ASSETS_CSS_PATH'] ?: 'css/');
+defined('BASE_URL_ASSETS_JS')                           || define('BASE_URL_ASSETS_JS', BASE_URL_ASSETS_FULL_PATH.$_ENV['BASE_URL_ASSETS_JS_PATH'] ?: 'js/');
+defined('BASE_URL_ASSETS_FONT')                         || define('BASE_URL_ASSETS_FONT', BASE_URL_ASSETS_FULL_PATH.$_ENV['BASE_URL_ASSETS_FONT_PATH'] ?: 'font/');
+defined('BASE_URL_ASSETS_SOUND')                        || define('BASE_URL_ASSETS_SOUND', BASE_URL_ASSETS_FULL_PATH.$_ENV['BASE_URL_ASSETS_SOUND_PATH'] ?: 'sound/');
 
 defined('OPTION_HOUR')						            || define('OPTION_HOUR', $arrHour);
 defined('OPTION_HOUR_STRARR')                           || define('OPTION_HOUR_STRARR', $strArrHour);
@@ -182,15 +187,15 @@ defined('OPTION_MINUTEINTERVAL_STRARR')                 || define('OPTION_MINUTE
 defined('OPTION_MONTH')						            || define('OPTION_MONTH', $arrMonth);
 defined('OPTION_YEAR')						            || define('OPTION_YEAR', $arrYear);
 
-defined('PATH_STORAGE')						            || define('PATH_STORAGE', getenv('PATH_STORAGE') ?: 'storage/');
+defined('PATH_STORAGE')						            || define('PATH_STORAGE', $_ENV['PATH_STORAGE'] ?: 'storage/');
 
-defined('ONEMSGIO_TOKEN')                               || define('ONEMSGIO_TOKEN', getenv('ONEMSGIO_TOKEN') ?: 'default');
-defined('ONEMSGIO_NAMESPACE')                           || define('ONEMSGIO_NAMESPACE', getenv('ONEMSGIO_NAMESPACE') ?: 'default');
-defined('ONEMSGIO_CHANNEL_URL')                         || define('ONEMSGIO_CHANNEL_URL', getenv('ONEMSGIO_CHANNEL_URL') ?: 'https://example.com/');
-defined('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE')   || define('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE', getenv('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE') ?: 'en_US');
+defined('ONEMSGIO_TOKEN')                               || define('ONEMSGIO_TOKEN', $_ENV['ONEMSGIO_TOKEN'] ?: 'default');
+defined('ONEMSGIO_NAMESPACE')                           || define('ONEMSGIO_NAMESPACE', $_ENV['ONEMSGIO_NAMESPACE'] ?: 'default');
+defined('ONEMSGIO_CHANNEL_URL')                         || define('ONEMSGIO_CHANNEL_URL', $_ENV['ONEMSGIO_CHANNEL_URL'] ?: 'https://example.com/');
+defined('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE')   || define('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE', $_ENV['ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE'] ?: 'en_US');
 
-defined('FIREBASE_PRIVATE_KEY_PATH')		            || define('FIREBASE_PRIVATE_KEY_PATH', APPPATH . getenv('FIREBASE_PRIVATE_KEY_PATH') ?: 'default.json');
-defined('FIREBASE_RTDB_URI')                            || define('FIREBASE_RTDB_URI', getenv('FIREBASE_RTDB_URI') ?: 'https://example.com');
-defined('FIREBASE_RTDB_PROJECT_ID')                     || define('FIREBASE_RTDB_PROJECT_ID', getenv('FIREBASE_RTDB_PROJECT_ID') ?: 'default');
-defined('FIREBASE_RTDB_MAINREF_NAME')                   || define('FIREBASE_RTDB_MAINREF_NAME', getenv('FIREBASE_RTDB_MAINREF_NAME') ?: 'default/');
-defined('FIREBASE_RTDB_WEBREF_NAME')                    || define('FIREBASE_RTDB_WEBREF_NAME', getenv('FIREBASE_RTDB_WEBREF_NAME') ?: 'default/');
+defined('FIREBASE_PRIVATE_KEY_PATH')		            || define('FIREBASE_PRIVATE_KEY_PATH', APPPATH . $_ENV['FIREBASE_PRIVATE_KEY_PATH'] ?: 'default.json');
+defined('FIREBASE_RTDB_URI')                            || define('FIREBASE_RTDB_URI', $_ENV['FIREBASE_RTDB_URI'] ?: 'https://example.com');
+defined('FIREBASE_RTDB_PROJECT_ID')                     || define('FIREBASE_RTDB_PROJECT_ID', $_ENV['FIREBASE_RTDB_PROJECT_ID'] ?: 'default');
+defined('FIREBASE_RTDB_MAINREF_NAME')                   || define('FIREBASE_RTDB_MAINREF_NAME', $_ENV['FIREBASE_RTDB_MAINREF_NAME'] ?: 'default/');
+defined('FIREBASE_RTDB_WEBREF_NAME')                    || define('FIREBASE_RTDB_WEBREF_NAME', $_ENV['FIREBASE_RTDB_WEBREF_NAME'] ?: 'default/');
