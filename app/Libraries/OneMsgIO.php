@@ -3,16 +3,17 @@ namespace App\Libraries;
 
 class OneMsgIO
 {
-    private function getJsonDataConfig(){
+    private function getJsonDataConfig()
+    {
         return [
-            "token"     =>  ONEMSGIO_TOKEN,
-            "namespace" =>  ONEMSGIO_NAMESPACE,
+            "token"     =>  ONEMSGIO_TOKEN
         ];
     }
 
     public function sendMessageTemplate($templateName, $templateLanguageCode, $phoneNumber, $params)
     {
         $jsonDataTemplate   =   [
+            "namespace" =>  ONEMSGIO_NAMESPACE,
             "template"  =>  $templateName,
             "language"  =>  [
                 "policy"    =>  "deterministic",
@@ -22,15 +23,25 @@ class OneMsgIO
             "phone"     =>  $phoneNumber
         ];
 
-        return $this->execOneMsgAPI($jsonDataTemplate);
+        return $this->execOneMsgAPI($jsonDataTemplate, 'sendTemplate');
+    }
+
+    public function sendMessage($phoneNumber, $message)
+    {
+        $jsonDataTemplate   =   [
+            "phone" =>  $phoneNumber,
+            "body"  =>  $message
+        ];
+
+        return $this->execOneMsgAPI($jsonDataTemplate, 'sendMessage');
     }
     
-    private function execOneMsgAPI($jsonDataParam)
+    private function execOneMsgAPI($jsonDataParam, $endPoint = 'sendMessage')
     {
         $logger     =   \Config\Services::logger();
         $ch         =   curl_init();
         $jsonData   =   array_merge($this->getJsonDataConfig(), $jsonDataParam);
-        curl_setopt($ch, CURLOPT_URL, ONEMSGIO_CHANNEL_URL."sendTemplate");
+        curl_setopt($ch, CURLOPT_URL, ONEMSGIO_CHANNEL_URL.$endPoint);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_POST, true);

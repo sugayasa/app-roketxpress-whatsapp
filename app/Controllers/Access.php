@@ -107,6 +107,7 @@ class Access extends ResourceController
                         $tokenPayload['idUserAdminLevel']   =   $userAdminDataDB['IDUSERADMINLEVEL'];
                         $tokenPayload['username']           =   $userAdminDataDB['USERNAME'];
                         $tokenPayload['name']               =   $userAdminDataDB['NAME'];
+                        $tokenPayload['initialName']        =   getInitialsName($userAdminDataDB['NAME']);
                         $tokenPayload['email']              =   $userAdminDataDB['EMAIL'];
                         $statusCode                         =   200;
                         $responseMsg                        =   'Login successfully, continue';
@@ -180,6 +181,7 @@ class Access extends ResourceController
             "idUserAdmin"       =>  $idUserAdmin,
             "idUserAdminLevel"  =>  $idUserAdminLevel,
             "username"          =>  $username,
+            "initialName"       =>  getInitialsName($name),
             "name"              =>  $name,
             "email"             =>  $email
         );

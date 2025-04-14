@@ -41,4 +41,6 @@
 	<script src="<?=BASE_URL_ASSETS_JS?>owl.carousel.min.js"></script>
 	<script src="<?=BASE_URL_ASSETS_JS?>simpleScrollBar.js"></script>
 	<script src="<?=BASE_URL_ASSETS_JS?>session-controller.js?<?=date('YmdHis')?>"></script>
+	<script src="<?=BASE_URL_ASSETS_JS?>moment.min.js?<?=date('YmdHis')?>"></script>
+	<script src="https://momentjs.com/downloads/moment-timezone-with-data.js"></script>
 </html>

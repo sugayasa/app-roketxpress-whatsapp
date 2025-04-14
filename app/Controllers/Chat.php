@@ -7,6 +7,8 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use CodeIgniter\I18n\Time;
+use App\Libraries\OneMsgIO;
+use App\Models\MainOperation;
 use App\Models\ChatModel;
 
 class Chat extends ResourceController
@@ -108,13 +110,82 @@ class Chat extends ResourceController
             }
         }
 
-        $idContact              =   $detailContact['IDCONTACT'];
-        $listActiveReservation  =   $chatModel->getListActiveReservation($idContact);
+        $idContact                  =   $detailContact['IDCONTACT'];
+        $detailContact['IDCONTACT'] =   hashidEncode($idContact);
+        $listActiveReservation      =   $chatModel->getListActiveReservation($idContact);
         return $this->setResponseFormat('json')
                     ->respond([
                         "detailContact"         =>  $detailContact,
                         "listChatThread"        =>  array_reverse($listChatThread),
                         "listActiveReservation" =>  $listActiveReservation
                      ]);
+    }
+
+    public function sendMessage()
+    {
+        helper(['form']);
+        $oneMsgIO       =   new OneMsgIO();
+        $mainOperation  =   new MainOperation();
+        $currentDateTime=   $this->currentDateTime;
+        $rules          =   [
+            'idContact'     =>  ['label' => 'Id Contact', 'rules' => 'required|alpha_numeric'],
+            'phoneNumber'   =>  ['label' => 'Phone Number', 'rules' => 'required|numeric'],
+            'message'       =>  ['label' => 'Message', 'rules' => 'required']
+        ];
+
+        $messages       =   [
+            'idContact'     => [
+                'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ],
+            'phoneNumber'   => [
+                'required'  => 'Phone number is required',
+                'numeric'   => 'Invalid phone number. The {field} must contain only numbers'
+            ],
+            'message'       => [
+                'required'  => 'Please insert message',
+            ]
+        ];
+
+        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+
+        $idContact      =   $this->request->getVar('idContact');
+        $idContact      =   hashidDecode($idContact);
+        $phoneNumber    =   $this->request->getVar('phoneNumber');
+        $phoneNumber    =   preg_replace('/[^0-9]/', '', $phoneNumber);
+        $message        =   $this->request->getVar('message');
+        $sendResult     =   $oneMsgIO->sendMessage($phoneNumber, $message);
+
+       if(!$sendResult['isSent']){
+            $errorCode  =   $sendResult['errorCode'];
+            $errorMsg   =   $sendResult['errorMsg'];
+            $mainOperation->insertLogFailedMessage(0, $idContact, $phoneNumber, [], $errorCode, $errorMsg);
+            switch($errorCode){
+                case 'E0001'    :   $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => -1], ['IDCONTACT' => $idContact]);
+                                    return throwResponseInternalServerError('Message delivery failed. The recipient`s number (+'.$phoneNumber.') is not registered as a valid WhatsApp user.', $sendResult);
+                case 'E1012'    :   return throwResponseInternalServerError('Invalid message sent. Please remove tab, new line and more than 4 consecutive spaces in the message', $sendResult);
+                default         :   return throwResponseInternalServerError('Failed to send message. Please try again later', $sendResult);
+            }
+        } else {
+            $idMessage  =   $sendResult['idMessage'];
+            $mainOperation->insertUpdateChatTable($currentDateTime, $idContact, $idMessage, $message);
+
+            return $this->setResponseFormat('json')
+                    ->respond([
+                        "idMessage"         =>  $idMessage,
+                        "chatTime"          =>  Time::now()->toLocalizedString('H:mm'),
+                        "initialName"       =>  $this->userData->initialName[0],
+                        "userNameChat"      =>  $this->userData->name,
+                        "arrayChatThread"   =>  [
+                            "IDMESSAGE"         =>  $idMessage,
+                            "CHATCONTENTHEADER" =>  "",
+                            "CHATCONTENTBODY"   =>  $message,
+                            "CHATCONTENTFOOTER" =>  "",
+                            "DATETIMESENT"      =>  null,
+                            "DATETIMEDELIVERED" =>  null,
+                            "DATETIMEREAD"      =>  null
+                        ]
+                     ]);
+        }
     }
 }

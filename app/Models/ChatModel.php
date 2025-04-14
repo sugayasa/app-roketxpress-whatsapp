@@ -86,9 +86,10 @@ class ChatModel extends Model
     public function getListChatThread($idChatList, $page, $dataPerPage = 50)
     {	
         $pageOffset =   ($page - 1) * $dataPerPage;
-        $this->select("IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME, A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER,
+        $this->select("A.IDMESSAGE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME, A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER,
                     DATE_FORMAT(A.CHATDATETIME, '%Y-%m-%d %H:%i:%s') AS CHATDATETIME, DATE_FORMAT(A.CHATDATETIME, '%H:%i') AS CHATTIME, '' AS DAYTITLE, A.STATUSREAD,
-                    IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS USERNAMECHAT, IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.ISTEMPLATE");
+                    A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS USERNAMECHAT, IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION,
+                    A.ISTEMPLATE");
         $this->from('t_chatthread A', true);
         $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
         $this->join('t_chatlist AS C', 'A.IDCHATLIST = C.IDCHATLIST', 'LEFT');

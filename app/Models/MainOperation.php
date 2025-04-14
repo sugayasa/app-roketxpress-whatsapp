@@ -181,12 +181,16 @@ class MainOperation extends Model
         return $result;
     }
 
-    public function insertUpdateChatTable($currentDateTime, $idContact, $idMessage, $messageTemplateGenerated){
-        $idChatList                 =   $this->getIdChatList($idContact);
-        $arrInsertUpdateChatList    =   [
+    public function insertUpdateChatTable($currentDateTime, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin = 1){
+        $idChatList             =   $this->getIdChatList($idContact);
+        $messageHeader          =   isset($messageTemplateGenerated['header']) ? $messageTemplateGenerated['header'] : '';
+        $messageBody            =   isset($messageTemplateGenerated['body']) ? $messageTemplateGenerated['body'] : $messageTemplateGenerated;
+        $messageFooter          =   isset($messageTemplateGenerated['footer']) ? $messageTemplateGenerated['footer'] : '';
+        $isTemplateMessage      =   isset($messageTemplateGenerated['body']) ? 1 : 0;
+        $arrInsertUpdateChatList=   [
             "IDCONTACT"             =>  $idContact,
             "TOTALUNREADMESSAGE"    =>  0,
-            "LASTMESSAGE"           =>  $messageTemplateGenerated['body'],
+            "LASTMESSAGE"           =>  $messageBody,
             "LASTMESSAGEDATETIME"   =>  $currentDateTime
         ];
 
@@ -201,14 +205,14 @@ class MainOperation extends Model
         if($idChatList){
             $arrInsertChatThread    =   [
                 "IDCHATLIST"        =>  $idChatList,
-                "IDUSERADMIN"       =>  1,
+                "IDUSERADMIN"       =>  $idUserAdmin,
                 "IDMESSAGE"         =>  $idMessage,
-                "CHATCONTENTHEADER" =>  $messageTemplateGenerated['header'],
-                "CHATCONTENTBODY"   =>  $messageTemplateGenerated['body'],
-                "CHATCONTENTFOOTER" =>  $messageTemplateGenerated['footer'],
+                "CHATCONTENTHEADER" =>  $messageHeader,
+                "CHATCONTENTBODY"   =>  $messageBody,
+                "CHATCONTENTFOOTER" =>  $messageFooter,
                 "CHATDATETIME"      =>  $currentDateTime,
                 "STATUSREAD"        =>  1,
-                "ISTEMPLATE"        =>  1
+                "ISTEMPLATE"        =>  $isTemplateMessage
             ];
 
             $this->insertDataTable('t_chatthread', $arrInsertChatThread);
@@ -222,6 +226,20 @@ class MainOperation extends Model
         $this->select("IDCHATLIST");
         $this->from('t_chatlist', true);
         $this->where('IDCONTACT', $idContact);
+        $this->limit(1);
+
+        $row    =   $this->get()->getRowArray();
+
+        if(is_null($row)) return false;
+        return $row['IDCHATLIST'];
+    }
+
+    public function getIdChatListByPhoneNumber($phoneNumber)
+    {	
+        $this->select("A.IDCHATLIST");
+        $this->from('t_chatlist A', true);
+        $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
+        $this->where('B.PHONENUMBER', $phoneNumber);
         $this->limit(1);
 
         $row    =   $this->get()->getRowArray();

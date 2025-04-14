@@ -209,3 +209,48 @@ if (!function_exists('issetAndNotNull')) {
         return isset($variable) && !is_null($variable) ? $variable : $defautlValue;
     }
 }
+
+if (!function_exists('getInitialsName')) {
+    /**
+     * Get initials from a name
+     *
+     * @param string $name
+     * @return string
+     */
+    function getInitialsName($name) {
+        $words      =   explode(' ', $name);
+        $initials   =   '';
+        foreach ($words as $word) {
+            $initials .= strtoupper($word[0]); // Convert to uppercase
+        }
+
+        return $initials;
+    }
+}
+
+if (!function_exists('getPhoneNumberFromWhatsappAuthor')) {
+    /**
+     * Get phone number from whatsapp author
+     *
+     * @param string $author
+     * @return int
+     */
+    function getPhoneNumberFromWhatsappAuthor($author) {
+        $phoneNumber    =   str_replace('@c.us', '', $author);
+        $phoneNumber    =   str_replace('@g.us', '', $phoneNumber);
+        $phoneNumber    =   str_replace('@s.whatsapp.net', '', $phoneNumber);
+        $phoneNumber    =   str_replace('@broadcast', '', $phoneNumber);
+        $phoneNumber    =   str_replace('@g.us', '', $phoneNumber);
+        $phoneNumberInt =   '';
+
+        for ($i = 0; $i < strlen($phoneNumber); $i++) {
+            if (is_numeric($phoneNumber[$i])) {
+                $phoneNumberInt .=  $phoneNumber[$i];
+            } else {
+                break;
+            }
+        }
+
+        return (int)$phoneNumberInt;
+    }
+}

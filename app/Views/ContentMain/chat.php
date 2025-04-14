@@ -45,23 +45,22 @@
         <div id="chat-conversation" class="chat-conversation p-3 p-lg-4 d-none" data-simplebar>
             <ul id="chat-conversation-ul" class="list-unstyled mb-0"></ul>
         </div>
-        <div id="chat-input-section" class="chat-input-section p-3 p-lg-4 border-top mb-0 d-none">
-            <div class="row g-0">
+        <div id="chat-input-section" class="chat-input-section p-2 p-lg-3 border-top mb-0 d-none">
+            <form class="row g-0" id="chat-formMessage" name="chat-formMessage" method="post" enctype="multipart/form-data">
                 <div class="col">
-                    <input type="text" class="form-control form-control-lg bg-light border-light" placeholder="Enter Message...">
+                    <textarea type="text" class="form-control form-control-lg bg-light border-light" id="chat-inputTextMessage" placeholder="Enter Message..." rows="1" autofocus></textarea>
                 </div>
-                <div class="col-auto">
-                    <div class="chat-input-links ms-md-2 me-md-0">
+                <div class="col-auto d-flex flex-column">
+                    <div class="chat-input-links ms-md-2 me-md-0 mt-auto">
                         <ul class="list-inline mb-0">
                             <li class="list-inline-item">
-                                <button type="submit" class="btn btn-primary font-size-16 btn-lg chat-send waves-effect waves-light">
-                                    <i class="ri-send-plane-2-fill"></i>
-                                </button>
+                                <input type="hidden" id="chat-idContact" name="chat-idContact" value="">
+                                <button type="submit" class="btn btn-primary font-size-16 btn-lg chat-send waves-effect waves-light" id="chat-btnSendMessage"><i class="ri-send-plane-2-fill"></i></button>
                             </li>
                         </ul>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 

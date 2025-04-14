@@ -167,6 +167,7 @@ defined('APP_NAME_FORMAL')                              || define('APP_NAME_FORM
 defined('APP_TIMEZONE')                                 || define('APP_TIMEZONE', $_ENV['APP_TIMEZONE'] ?: 'Asia/Jakarta');
 defined('APP_MAIN_DATABASE_NAME')                       || define('APP_MAIN_DATABASE_NAME', $_ENV['APP_MAIN_DATABASE_NAME'] ?: 'db_default');
 defined('MAX_INACTIVE_SESSION_MINUTES')                 || define('MAX_INACTIVE_SESSION_MINUTES', $_ENV['MAX_INACTIVE_SESSION_MINUTES'] ?: 60);
+defined('LOG_WEBHOOK_MESSAGE')                          || define('LOG_WEBHOOK_MESSAGE', $_ENV['LOG_WEBHOOK_MESSAGE'] ?: false);
 
 defined('PRODUCTION_URL')						        || define('PRODUCTION_URL', $productionURL);
 defined('BASE_URL')                                     || define('BASE_URL', $_ENV['BASE_URL'] ?: 'https://example.com/');
@@ -198,4 +199,3 @@ defined('FIREBASE_PRIVATE_KEY_PATH')		            || define('FIREBASE_PRIVATE_KE
 defined('FIREBASE_RTDB_URI')                            || define('FIREBASE_RTDB_URI', $_ENV['FIREBASE_RTDB_URI'] ?: 'https://example.com');
 defined('FIREBASE_RTDB_PROJECT_ID')                     || define('FIREBASE_RTDB_PROJECT_ID', $_ENV['FIREBASE_RTDB_PROJECT_ID'] ?: 'default');
 defined('FIREBASE_RTDB_MAINREF_NAME')                   || define('FIREBASE_RTDB_MAINREF_NAME', $_ENV['FIREBASE_RTDB_MAINREF_NAME'] ?: 'default/');
-defined('FIREBASE_RTDB_WEBREF_NAME')                    || define('FIREBASE_RTDB_WEBREF_NAME', $_ENV['FIREBASE_RTDB_WEBREF_NAME'] ?: 'default/');
