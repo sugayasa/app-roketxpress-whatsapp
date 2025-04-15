@@ -65,12 +65,14 @@ class Index extends BaseController
                             try {
                                 $listMenuDB         =   $accessModel->getUserAdminMenu($idUserAdminLevel);
                                 $menuElement	    =	$this->menuBuilder($listMenuDB, $lastPageAlias);
+                                $firebaseScript     =   view('firebase', [], ['debug' => false]);
                                 $htmlRes            =   view(
                                                             'mainPage',
                                                             array(
                                                                 "userAdminData"         => $userAdminData,
                                                                 "menuElement"           => $menuElement,
-                                                                "allowNotifList"        => []
+                                                                "allowNotifList"        => [],
+                                                                "firebaseScript"        => $firebaseScript
                                                             ),
                                                             ['debug' => false]
                                                         );

@@ -63,7 +63,6 @@
             </form>
         </div>
     </div>
-
     <div class="user-profile-sidebar">
         <div class="px-3 px-lg-4 pt-3 pt-lg-4">
             <div class="user-chat-nav text-end">
@@ -88,6 +87,22 @@
                 <p class="mb-4"><span id="profile-sidebar-countryContinent">-</span><br/><span id="profile-sidebar-email">-</span></p>
             </div>
             <div class="accordion" id="profile-sidebar-reservationList"></div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal-messageACKDetails" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body p-4">
+                <dl class="mb-0">
+                    <dt class="mb-2">Sent</dt>
+                    <dd class="mb-2 text-muted" id="messageACKDetails-dateTimeSent"></dd>
+                    <dt class="mb-2">Delivered</dt>
+                    <dd class="mb-2 text-muted" id="messageACKDetails-dateTimeDelivered"></dd>
+                    <dt class="mb-2">Read</dt>
+                    <dd class="mb-2 text-muted" id="messageACKDetails-dateTimeRead"></dd>
+                </dl>
+            </div>
         </div>
     </div>
 </div>

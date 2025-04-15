@@ -196,6 +196,15 @@ defined('ONEMSGIO_CHANNEL_URL')                         || define('ONEMSGIO_CHAN
 defined('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE')   || define('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE', $_ENV['ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE'] ?: 'en_US');
 
 defined('FIREBASE_PRIVATE_KEY_PATH')		            || define('FIREBASE_PRIVATE_KEY_PATH', APPPATH . $_ENV['FIREBASE_PRIVATE_KEY_PATH'] ?: 'default.json');
+
+defined('FIREBASE_PUBLIC_API_KEY')                      || define('FIREBASE_PUBLIC_API_KEY', $_ENV['FIREBASE_PUBLIC_API_KEY'] ?: 'AIopPPLLERjk1-7XXXXXXXXXXXXXXXXXX');
+defined('FIREBASE_PUBLIC_AUTH_DOMAIN')		            || define('FIREBASE_PUBLIC_AUTH_DOMAIN', $_ENV['FIREBASE_PUBLIC_AUTH_DOMAIN'] ?: 'example-project.firebaseapp.com');
+defined('FIREBASE_PUBLIC_PROJECT_ID')		            || define('FIREBASE_PUBLIC_PROJECT_ID', $_ENV['FIREBASE_PUBLIC_PROJECT_ID'] ?: 'example-project');
+defined('FIREBASE_PUBLIC_STORAGE_BUCKET')               || define('FIREBASE_PUBLIC_STORAGE_BUCKET', $_ENV['FIREBASE_PUBLIC_STORAGE_BUCKET'] ?: 'example-project.appspot.com');
+defined('FIREBASE_PUBLIC_MESSAGING_SENDER_ID')          || define('FIREBASE_PUBLIC_MESSAGING_SENDER_ID', $_ENV['FIREBASE_PUBLIC_MESSAGING_SENDER_ID'] ?: '111111111111');
+defined('FIREBASE_PUBLIC_APP_ID')                       || define('FIREBASE_PUBLIC_APP_ID', $_ENV['FIREBASE_PUBLIC_APP_ID'] ?: '1:111111111111:web:0ffffffffffffffffffff');
+defined('FIREBASE_PUBLIC_MEASUREMENT_ID')               || define('FIREBASE_PUBLIC_MEASUREMENT_ID', $_ENV['FIREBASE_PUBLIC_MEASUREMENT_ID'] ?: 'G-1111111111');
+
 defined('FIREBASE_RTDB_URI')                            || define('FIREBASE_RTDB_URI', $_ENV['FIREBASE_RTDB_URI'] ?: 'https://example.com');
 defined('FIREBASE_RTDB_PROJECT_ID')                     || define('FIREBASE_RTDB_PROJECT_ID', $_ENV['FIREBASE_RTDB_PROJECT_ID'] ?: 'default');
 defined('FIREBASE_RTDB_MAINREF_NAME')                   || define('FIREBASE_RTDB_MAINREF_NAME', $_ENV['FIREBASE_RTDB_MAINREF_NAME'] ?: 'default/');

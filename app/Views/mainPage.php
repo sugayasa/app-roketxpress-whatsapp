@@ -237,3 +237,4 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 		url				=	"<?=BASE_URL_ASSETS_JS?>app.js?<?=date('YmdHis')?>";
 	$.getScript(url);
 </script>
+<?=$firebaseScript?>

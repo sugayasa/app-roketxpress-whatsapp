@@ -51,6 +51,8 @@ class Webhook extends ResourceController
                 if(!$fromMe){
                     $phoneNumber    =   getPhoneNumberFromWhatsappAuthor($author);
                     $idChatList     =   $mainOperation->getIdChatListByPhoneNumber($phoneNumber);
+                    $time           =   Time::createFromTimestamp($time, 'GMT');
+                    $dateTime       =   $time->setTimezone('Asia/Makassar')->toDateTimeString();
 
                     if($idChatList){
                         $arrInsertThread=   [
@@ -58,7 +60,7 @@ class Webhook extends ResourceController
                             'IDUSERADMIN'       =>  0,
                             'IDMESSAGE'         =>  $messageId,
                             'CHATCONTENTBODY'   =>  $messageBody,
-                            'CHATDATETIME'      =>  $time,
+                            'CHATDATETIME'      =>  $dateTime,
                             'STATUSREAD'        =>  0,
                             'ISTEMPLATE'        =>  false
                         ];
