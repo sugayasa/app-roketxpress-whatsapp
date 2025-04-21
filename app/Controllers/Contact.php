@@ -19,13 +19,14 @@ class Contact extends ResourceController
      * @return mixed
      */
     use ResponseTrait;
-    protected $userData, $currentDateTime;
+    protected $userData, $currentDateTime, $currentTimeStamp;
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger) {
         parent::initController($request, $response, $logger);
 
         try {
             $this->userData         =   $request->userData;
             $this->currentDateTime  =   $request->currentDateTime;
+            $this->currentTimeStamp =   $request->currentTimeStamp;
         } catch (\Throwable $th) {
         }
     }
@@ -109,14 +110,17 @@ class Contact extends ResourceController
         $contactModel           =   new ContactModel();
         $idContact              =   $this->request->getVar('idContact');
         $idContact              =   hashidDecode($idContact);
+        $userTimeZoneOffset     =   $this->userData->userTimeZoneOffset;
         $detailContact          =   $contactModel->getDetailContact($idContact);
         $listDetailReservation  =   $contactModel->getListDetailReservation($idContact);
-        $lastReplyDateTime      =   $detailContact['LASTREPLYDATETIME'];
+        $lastReplyDateTime      =   $detailContact['DATETIMELASTREPLY'];
+        $lastReplyDateTimeTF    =   $lastReplyDateTime == '' ? '' : Time::createFromTimestamp($lastReplyDateTime, 'UTC')->setTimezone($userTimeZoneOffset);
+        $lastReplyDateTimeStr   =   $lastReplyDateTime == '' ? '' : $lastReplyDateTimeTF->toLocalizedString('yyyy-MM-dd HH:mm:ss');
         $isChatSessionActive    =   false;
 
-        if($lastReplyDateTime != ''){
-            $lastReplyDateTimeIntervalMinutes   =   getDateTimeIntervalMinutes($lastReplyDateTime);
-            $detailContact['LASTREPLYDATETIME'] =   getDateTimeIntervalStringInfo($lastReplyDateTime, 24);
+        if($lastReplyDateTimeStr != ''){
+            $lastReplyDateTimeIntervalMinutes   =   getDateTimeIntervalMinutes($lastReplyDateTimeStr);
+            $detailContact['DATETIMELASTREPLY'] =   getDateTimeIntervalStringInfo($lastReplyDateTimeStr, 24);
             if($lastReplyDateTimeIntervalMinutes <= (23.5 * 60)) $isChatSessionActive   =   true;
         }
 
@@ -181,7 +185,7 @@ class Contact extends ResourceController
 
         $mainOperation              =   new MainOperation();
         $oneMsgIO                   =   new OneMsgIO();
-        $currentDateTime            =   $this->currentDateTime;
+        $currentTimeStamp           =   $this->currentTimeStamp;
         $idContact                  =   $this->request->getVar('idContact');
         $phoneNumber                =   $this->request->getVar('phoneNumber');
         $templateData               =   $this->request->getVar('templateData');
@@ -222,10 +226,11 @@ class Contact extends ResourceController
             }
         } else {
             $idMessage                  =   $sendResult['idMessage'];
+            $idUserAdmin                =   $this->userData->idUserAdmin;
             $listOfTemplate             =   $oneMsgIO->getListOfTemplates();
             $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateName, $listOfTemplate, $arrTemplateParameters);
 
-            if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentDateTime, $idContact, $idMessage, $messageTemplateGenerated);
+            if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin);
             $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => 1], ['IDCONTACT' => $idContact]);
             return throwResponseOK('Message has been sent');
         }

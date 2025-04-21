@@ -19,13 +19,14 @@ class Chat extends ResourceController
      * @return mixed
      */
     use ResponseTrait;
-    protected $userData, $currentDateTime;
+    protected $userData, $currentDateTime, $currentTimeStamp;
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger) {
         parent::initController($request, $response, $logger);
 
         try {
             $this->userData         =   $request->userData;
             $this->currentDateTime  =   $request->currentDateTime;
+            $this->currentTimeStamp =   $request->currentTimeStamp;
         } catch (\Throwable $th) {
         }
     }
@@ -37,24 +38,26 @@ class Chat extends ResourceController
 
     public function getDataChatList()
     {
-        $chatModel      =   new ChatModel();
-        $page           =   $this->request->getVar('page');
-        $searchKeyword  =   $this->request->getVar('searchKeyword');
-        $idContact      =   $this->request->getVar('idContact');
-        $idContact      =   isset($idContact) && !is_null($idContact) && $idContact != '' ? hashidDecode($idContact) : null;
-        $dataPerPage    =   50;
-        $dataChatList   =   $chatModel->getDataChatList($page, $dataPerPage, $searchKeyword, $idContact);
-        $totalData      =   0;
+        $chatModel          =   new ChatModel();
+        $page               =   $this->request->getVar('page');
+        $searchKeyword      =   $this->request->getVar('searchKeyword');
+        $idContact          =   $this->request->getVar('idContact');
+        $idContact          =   isset($idContact) && !is_null($idContact) && $idContact != '' ? hashidDecode($idContact) : null;
+        $dataPerPage        =   50;
+        $dataChatList       =   $chatModel->getDataChatList($page, $dataPerPage, $searchKeyword, $idContact);
+        $totalData          =   0;
 
         if($dataChatList && count($dataChatList) > 0) {
-            $dataChatList   =   encodeDatabaseObjectResultKey($dataChatList, 'IDCHATLIST');
+            $dataChatList   =   encodeDatabaseObjectResultKey($dataChatList, 'IDCHATLIST', true);
 
             foreach($dataChatList as $keyChatList){
                 $lastMessage            =   $keyChatList->LASTMESSAGE;
                 $lastMessage            =   strlen($lastMessage) > 30 ? substr($lastMessage, 0, 30)."..." : $lastMessage;
-                $lastMessageDateTime    =   $keyChatList->LASTMESSAGEDATETIME;
+                $lastMessageDateTime    =   $keyChatList->DATETIMELASTMESSAGE;
+                $lastMessageDateTimeTF  =   Time::createFromTimestamp($lastMessageDateTime, 'UTC')->setTimezone(APP_TIMEZONE);
+                $lastMessageDateTimeStr =   $lastMessageDateTimeTF->toLocalizedString('yyyy-MM-dd HH:mm:ss');
 
-                $keyChatList->LASTMESSAGEDATETIME   =   getDateTimeIntervalStringInfo($lastMessageDateTime, 1);
+                $keyChatList->DATETIMELASTMESSAGESTR=   getDateTimeIntervalStringInfo($lastMessageDateTimeStr, 1);
                 $keyChatList->LASTMESSAGE           =   $lastMessage;
                 $totalData++;
             }
@@ -71,7 +74,7 @@ class Chat extends ResourceController
     public function getDetailChat()
     {
         helper(['form']);
-        $rules      =   [
+        $rules          =   [
             'idChatList'    =>  ['label' => 'Id contact', 'rules' => 'required|alpha_numeric']
         ];
 
@@ -84,30 +87,53 @@ class Chat extends ResourceController
 
         if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
 
-        $chatModel      =   new ChatModel();
-        $idChatList     =   $this->request->getVar('idChatList');
-        $idChatList     =   hashidDecode($idChatList);
-        $page           =   $this->request->getVar('page');
-        $detailContact  =   $chatModel->getDetailContactChat($idChatList);
-        $listChatThread =   $chatModel->getListChatThread($idChatList, $page);
-        $dateNow        =   new Time('now');
-        $dateToday      =   $dateNow->format('Y-m-d');
-        $dateYesterday  =   $dateNow->modify('-1 day')->format('Y-m-d');
+        $mainOperation      =   new MainOperation();
+        $chatModel          =   new ChatModel();
+        $idChatList         =   $this->request->getVar('idChatList');
+        $idChatList         =   hashidDecode($idChatList, true);
+        $page               =   $this->request->getVar('page');
+        $idUserAdmin        =   $this->userData->idUserAdmin;
+        $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
+        $detailContact      =   $chatModel->getDetailContactChat($idChatList);
+        $listChatThread     =   $chatModel->getListChatThread($idChatList, $userTimeZoneOffset, $page);
+        $dateNow            =   new Time('now');
+        $dateToday          =   $dateNow->format('Y-m-d');
+        $dateYesterday      =   $dateNow->modify('-1 day')->format('Y-m-d');
 
         if($listChatThread){
             foreach($listChatThread as $keyChatThread){
-                $chatDateTime   =   $keyChatThread->CHATDATETIME;
-                $chatDateTimeTF =   Time::createFromFormat('Y-m-d H:i:s', $chatDateTime);
-                $chatDate       =   $chatDateTimeTF->toDateString();
+                $dateTimeChat   =   $keyChatThread->DATETIMECHAT;
+                $dateTimeChatTF =   Time::createFromTimestamp($dateTimeChat, 'UTC')->setTimezone($userTimeZoneOffset);
+                $chatDate       =   $dateTimeChatTF->toDateString();
 
+                $keyChatThread->CHATTIME    =   $dateTimeChatTF->toLocalizedString('H:mm');
                 if($chatDate == $dateToday){
                     $keyChatThread->DAYTITLE    =   'Today';
                 } else if($chatDate == $dateYesterday) {
                     $keyChatThread->DAYTITLE    =   'Yesterday';
                 } else {
-                    $keyChatThread->DAYTITLE    =   $chatDateTimeTF->toLocalizedString('d MMM Y');
+                    $keyChatThread->DAYTITLE    =   $dateTimeChatTF->toLocalizedString('d MMM Y');
                 }
+
+                $idChatThread       =   $keyChatThread->IDCHATTHREAD;
+                $arrIdUserAdminRead =   $keyChatThread->ARRIDUSERADMINREAD;
+                $arrIdUserAdminRead =   json_decode($arrIdUserAdminRead, true);
+                $isIdUserAdminExists=   in_array($idUserAdmin, $arrIdUserAdminRead);
+
+                if(!$isIdUserAdminExists){
+                    $arrInsertChatDetailRead    =   [
+                        'IDUSERADMIN'     =>  $idUserAdmin,
+                        'IDCHATTHREAD'    =>  $idChatThread,
+                        'DATETIMEREAD'    =>  $this->currentTimeStamp
+                    ];
+                    $mainOperation->insertDataTable('t_chatdetailread', $arrInsertChatDetailRead);
+                }
+
+                $mainOperation->updateDataTable('t_chatthread', ['STATUSREAD' => 1], ['IDCHATTHREAD' => $idChatThread]);
+                unset($keyChatThread->ARRIDUSERADMINREAD);
             }
+            $listChatThread =   encodeDatabaseObjectResultKey($listChatThread, 'IDCHATTHREAD', true);
+            $mainOperation->updateChatListAndRTDBStats($idChatList, false, true);
         }
 
         $idContact                  =   $detailContact['IDCONTACT'];
@@ -121,13 +147,41 @@ class Chat extends ResourceController
                      ]);
     }
 
+    public function getDetailThreadACK()
+    {
+        helper(['form']);
+        $rules      =   [
+            'idChatThread'    =>  ['label' => 'Id Chat Thread', 'rules' => 'required|alpha_numeric']
+        ];
+
+        $messages   =   [
+            'idChatThread'    => [
+                'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ]
+        ];
+
+        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+
+        $chatModel      =   new ChatModel();
+        $idChatThread   =   $this->request->getVar('idChatThread');
+        $idChatThread   =   hashidDecode($idChatThread, true);
+        $dataThreadACK  =   $chatModel->getDataThreadACK($idChatThread);
+
+        if(!$dataThreadACK) return throwResponseNotFound('Details not found');
+        return $this->setResponseFormat('json')
+                    ->respond([
+                        "dataThreadACK" =>  $dataThreadACK
+                     ]);
+    }
+
     public function sendMessage()
     {
         helper(['form']);
-        $oneMsgIO       =   new OneMsgIO();
-        $mainOperation  =   new MainOperation();
-        $currentDateTime=   $this->currentDateTime;
-        $rules          =   [
+        $oneMsgIO           =   new OneMsgIO();
+        $mainOperation      =   new MainOperation();
+        $currentTimeStamp   =   $this->currentTimeStamp;
+        $rules              =   [
             'idContact'     =>  ['label' => 'Id Contact', 'rules' => 'required|alpha_numeric'],
             'phoneNumber'   =>  ['label' => 'Phone Number', 'rules' => 'required|numeric'],
             'message'       =>  ['label' => 'Message', 'rules' => 'required']
@@ -167,25 +221,44 @@ class Chat extends ResourceController
                 default         :   return throwResponseInternalServerError('Failed to send message. Please try again later', $sendResult);
             }
         } else {
-            $idMessage  =   $sendResult['idMessage'];
-            $mainOperation->insertUpdateChatTable($currentDateTime, $idContact, $idMessage, $message);
+            $idMessage          =   $sendResult['idMessage'];
+            $idUserAdmin        =   $this->userData->idUserAdmin;
+            $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
+            $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $message, $idUserAdmin);
 
-            return $this->setResponseFormat('json')
-                    ->respond([
-                        "idMessage"         =>  $idMessage,
-                        "chatTime"          =>  Time::now()->toLocalizedString('H:mm'),
-                        "initialName"       =>  $this->userData->initialName[0],
-                        "userNameChat"      =>  $this->userData->name,
-                        "arrayChatThread"   =>  [
-                            "IDMESSAGE"         =>  $idMessage,
-                            "CHATCONTENTHEADER" =>  "",
-                            "CHATCONTENTBODY"   =>  $message,
-                            "CHATCONTENTFOOTER" =>  "",
-                            "DATETIMESENT"      =>  null,
-                            "DATETIMEDELIVERED" =>  null,
-                            "DATETIMEREAD"      =>  null
-                        ]
-                     ]);
+            return throwResponseOK('Message sent successfully', [
+                'idMessage'     =>  $idMessage,
+                'phoneNumber'   =>  $phoneNumber,
+                'message'       =>  $message,
+                'dateTimeChat'  =>  Time::now('UTC')->setTimezone($userTimeZoneOffset)->toLocalizedString('H:mm')
+            ]);
         }
+    }
+
+    public function updateUnreadMessageCount()
+    {
+        $mainOperation          =   new MainOperation();
+        $chatModel              =   new ChatModel();
+        $idChatList             =   $this->request->getVar('idChatList');
+        $idChatList             =   hashidDecode($idChatList, true);
+        $idUserAdmin            =   $this->userData->idUserAdmin;
+        $dataUnreadChatThread   =   $chatModel->getDataUnreadChatThread($idChatList);
+
+        if($dataUnreadChatThread){
+            foreach($dataUnreadChatThread as $keyUnreadChatThread){
+                $idChatThread           =   $keyUnreadChatThread->IDCHATTHREAD;
+                $arrInsertChatDetailRead=   [
+                    'IDUSERADMIN'     =>  $idUserAdmin,
+                    'IDCHATTHREAD'    =>  $idChatThread,
+                    'DATETIMEREAD'    =>  $this->currentTimeStamp
+                ];
+
+                $mainOperation->insertDataTable('t_chatdetailread', $arrInsertChatDetailRead);
+                $mainOperation->updateDataTable('t_chatthread', ['STATUSREAD' => 1], ['IDCHATTHREAD' => $idChatThread]);
+            }
+        }
+
+        $mainOperation->updateChatListAndRTDBStats($idChatList, false, true);
+        return throwResponseOK('Unread message count updated successfully');
     }
 }

@@ -139,7 +139,7 @@ if (!function_exists('getDateTimeIntervalStringInfo')) {
      * @return String
      */
     function getDateTimeIntervalStringInfo(string $dateTimeString, int $maxHourCondition){
-        $dateTimeNow        =   new Time('now');
+        $dateTimeNow        =   Time::now('UTC');
         $dateToday          =   $dateTimeNow->format('Y-m-d');
         $dateTimeStringDate =   substr($dateTimeString, 0, 10);
         $dateTimeTF         =   Time::createFromFormat('Y-m-d H:i:s', $dateTimeString);
@@ -173,8 +173,8 @@ if (!function_exists('getDateTimeIntervalStringInfo')) {
             }
 
             if($minutesDifference > 60 && $maxHourCondition == 1) $dateTimeIntervalStr =   $dateTimeTF->toLocalizedString('HH:mm');
-            if($minutesDifference <= 60 && $minutesDifference > 0) $dateTimeIntervalStr =   $minutesDifference." minutes ago";
-            if($minutesDifference == 1) $dateTimeIntervalStr =   "1 minute ago";
+            if($minutesDifference <= 60 && $minutesDifference > 0) $dateTimeIntervalStr =   $minutesDifference." mins ago";
+            if($minutesDifference == 1) $dateTimeIntervalStr =   "1 min ago";
             if($minutesDifference <= 0) $dateTimeIntervalStr =   "Just now";
         }
 

@@ -44,6 +44,7 @@ class Auth implements FilterInterface
             $request->currentDateDT     =   Time::today(APP_TIMEZONE);
             $request->currentDate       =   Time::now(APP_TIMEZONE)->toDateString();
             $request->currentDateTime   =   Time::now(APP_TIMEZONE)->toDateTimeString();
+            $request->currentTimeStamp  =   Time::now('UTC')->getTimestamp();
             $request->userData          =   $dataDecode;
             $idUserAdmin                =   $dataDecode->idUserAdmin;
             $tokenTimeCreate            =   $dataDecode->timeCreate;

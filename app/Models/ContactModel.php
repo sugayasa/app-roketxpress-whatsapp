@@ -94,7 +94,7 @@ class ContactModel extends Model
     {	
         $this->select(
             "A.NAMEFULL, A.PHONENUMBER, IFNULL(B.COUNTRYNAME, '-') AS COUNTRYNAME, IFNULL(C.CONTINENTNAME, '-') AS CONTINENTNAME,
-            IF(A.EMAILS = '' OR A.EMAILS IS NULL, '-', A.EMAILS) AS EMAILS, IFNULL(F.LASTREPLYDATETIME, '') AS LASTREPLYDATETIME, '' AS DATETIMEINTERVALINFO,
+            IF(A.EMAILS = '' OR A.EMAILS IS NULL, '-', A.EMAILS) AS EMAILS, IFNULL(F.DATETIMELASTREPLY, '') AS DATETIMELASTREPLY, '' AS DATETIMEINTERVALINFO,
             COUNT(DISTINCT(D.IDRESERVATION)) AS TOTALRESERVATION,
             CONCAT(
                 '[',
@@ -126,7 +126,7 @@ class ContactModel extends Model
             "COUNTRYNAME"           =>  "-",
             "CONTINENTNAME"         =>  "-",
             "EMAILS"                =>  "-",
-            "LASTREPLYDATETIME"     =>  '',
+            "DATETIMELASTREPLY"     =>  '',
             "DATETIMEINTERVALINFO"  =>  '',
             "TOTALRESERVATION"      =>  0,
             "ARRAYSOURCE"           =>  "[]",

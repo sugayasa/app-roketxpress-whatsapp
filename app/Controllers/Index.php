@@ -81,7 +81,6 @@ class Index extends BaseController
                                     'htmlRes'   =>  $htmlRes
                                 ]);
                             } catch (\Throwable $th) {
-                                var_dump($th); die();
                                 return $this->failUnauthorized('[E-AUTH-001.1.1] Internal error. Failed to respond');
                             }
                         } else {

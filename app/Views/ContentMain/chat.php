@@ -94,14 +94,7 @@
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body p-4">
-                <dl class="mb-0">
-                    <dt class="mb-2">Sent</dt>
-                    <dd class="mb-2 text-muted" id="messageACKDetails-dateTimeSent"></dd>
-                    <dt class="mb-2">Delivered</dt>
-                    <dd class="mb-2 text-muted" id="messageACKDetails-dateTimeDelivered"></dd>
-                    <dt class="mb-2">Read</dt>
-                    <dd class="mb-2 text-muted" id="messageACKDetails-dateTimeRead"></dd>
-                </dl>
+                <dl class="row mb-0" id="messageACKDetails-rowData"></dl>
             </div>
         </div>
     </div>

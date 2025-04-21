@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use CodeIgniter\API\ResponseTrait;
+use CodeIgniter\I18n\Time;
 use App\Controllers\BaseController;
 use App\Libraries\OneMsgIO;
 use App\Models\MainOperation;
@@ -24,12 +25,13 @@ class Cron extends BaseController
     {
         echo date('Y-m-d H:i:s')." - Start\n";
 
-        $cronModel      =   new CronModel();
-        $mainOperation  =   new MainOperation();
-        $oneMsgIO       =   new OneMsgIO();
-        $currentDateTime=   date('Y-m-d H:i:s');
+        $cronModel          =   new CronModel();
+        $mainOperation      =   new MainOperation();
+        $oneMsgIO           =   new OneMsgIO();
+        $currentDateTime    =   date('Y-m-d H:i:s');
+        $currentTimeStamp   =   Time::now('UTC')->getTimestamp();
         
-        $dataChatCron   =   $cronModel->getDataChatCron();
+        $dataChatCron       =   $cronModel->getDataChatCron();
 
         if($dataChatCron){
             foreach($dataChatCron as $keyChatCron){
@@ -80,7 +82,7 @@ class Cron extends BaseController
                         $listOfTemplate             =   $oneMsgIO->getListOfTemplates();
                         $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateCode, $listOfTemplate, $arrParametersTemplate);
 
-                        if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentDateTime, $idContact, $idMessage, $messageTemplateGenerated);
+                        if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated);
                     }                
                 }
             }

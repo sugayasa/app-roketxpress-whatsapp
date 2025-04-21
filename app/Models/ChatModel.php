@@ -13,7 +13,7 @@ class ChatModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['IDCHATLIST', 'IDCONTACT', 'TOTALUNREADMESSAGE', 'LASTMESSAGE', 'LASTMESSAGEDATETIME'];
+    protected $allowedFields    = ['IDCHATLIST', 'IDCONTACT', 'TOTALUNREADMESSAGE', 'LASTMESSAGE', 'DATETIMELASTMESSAGE'];
 
     // Dates
     protected $useTimestamps = false;
@@ -39,11 +39,11 @@ class ChatModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    public function getDataChatList($page, $dataPerPage = 50, $searchKeyword, $idContact = null)
+    public function getDataChatList($page, $dataPerPage = 25, $searchKeyword, $idContact = null)
     {	
         $pageOffset     =   ($page - 1) * $dataPerPage;
-        $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, A.TOTALUNREADMESSAGE, A.LASTMESSAGE,
-                        DATE_FORMAT(A.LASTMESSAGEDATETIME, '%Y-%m-%d %H:%i:%s') AS LASTMESSAGEDATETIME");
+        $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, A.TOTALUNREADMESSAGE, A.LASTMESSAGE, A.DATETIMELASTMESSAGE,
+                '' AS DATETIMELASTMESSAGESTR");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
         if(isset($searchKeyword) && !is_null($searchKeyword) && $searchKeyword != '' && ($idContact == null || $idContact == '')) {
@@ -57,7 +57,7 @@ class ChatModel extends Model
         if(isset($idContact) && !is_null($idContact) && $idContact != '') {
             $this->where('A.IDCONTACT = ', $idContact);
         }
-        $this->orderBy('A.LASTMESSAGEDATETIME DESC');
+        $this->orderBy('A.DATETIMELASTMESSAGE DESC');
         $this->limit($dataPerPage, $pageOffset);
 
         $result =   $this->get()->getResultObject();
@@ -83,19 +83,21 @@ class ChatModel extends Model
         return $row;
     }
 
-    public function getListChatThread($idChatList, $page, $dataPerPage = 50)
+    public function getListChatThread($idChatList, $userTimeZoneOffset, $page, $dataPerPage = 25)
     {	
         $pageOffset =   ($page - 1) * $dataPerPage;
-        $this->select("A.IDMESSAGE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME, A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER,
-                    DATE_FORMAT(A.CHATDATETIME, '%Y-%m-%d %H:%i:%s') AS CHATDATETIME, DATE_FORMAT(A.CHATDATETIME, '%H:%i') AS CHATTIME, '' AS DAYTITLE, A.STATUSREAD,
-                    A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS USERNAMECHAT, IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION,
-                    A.ISTEMPLATE");
+        $this->select("A.IDCHATTHREAD, A.IDMESSAGE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME, A.CHATCONTENTHEADER, A.CHATCONTENTBODY,
+                    A.CHATCONTENTFOOTER, A.DATETIMECHAT, '' AS CHATTIME, '' AS DAYTITLE, A.STATUSREAD, A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD,
+                    IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS USERNAMECHAT, IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.ISTEMPLATE,
+                    IFNULL(CONCAT('[', GROUP_CONCAT(E.IDUSERADMIN), ']'), '[]') AS ARRIDUSERADMINREAD");
         $this->from('t_chatthread A', true);
         $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
         $this->join('t_chatlist AS C', 'A.IDCHATLIST = C.IDCHATLIST', 'LEFT');
         $this->join('t_contact AS D', 'C.IDCONTACT = D.IDCONTACT', 'LEFT');
+        $this->join('t_chatdetailread AS E', 'A.IDCHATTHREAD = E.IDCHATTHREAD', 'LEFT');
         $this->where('A.IDCHATLIST', $idChatList);
-        $this->orderBy('A.CHATDATETIME DESC, A.IDUSERADMIN ASC');
+        $this->groupBy('A.IDCHATTHREAD');
+        $this->orderBy('A.DATETIMECHAT DESC, A.IDUSERADMIN ASC');
         $this->limit($dataPerPage, $pageOffset);
 
         $result     =   $this->get()->getResultObject();
@@ -130,4 +132,29 @@ class ChatModel extends Model
         return $result;
     }
 
+    public function getDataThreadACK($idChatThread)
+    {	
+        $this->select("B.NAME, A.DATETIMEREAD");
+        $this->from('t_chatdetailread A', true);
+        $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
+        $this->where('A.IDCHATTHREAD', $idChatThread);
+        $this->orderBy('A.DATETIMEREAD');
+
+        $result     =   $this->get()->getResultObject();
+
+        if(is_null($result)) return false;
+        return $result;
+    }
+
+    public function getDataUnreadChatThread($idChatList){
+        $this->select("IDCHATTHREAD");
+        $this->from('t_chatthread', true);
+        $this->where('STATUSREAD', 0);
+        $this->orderBy('IDCHATTHREAD');
+
+        $result     =   $this->get()->getResultObject();
+
+        if(is_null($result)) return false;
+        return $result;
+    }
 }

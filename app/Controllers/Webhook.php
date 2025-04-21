@@ -19,7 +19,7 @@ class Webhook extends ResourceController
     protected $epochDatetime;
     public function __construct()
     {
-        $this->epochDatetime    =   Time::now()->getTimestamp();
+        $this->epochDatetime    =   Time::now('UTC')->getTimestamp();
     }
 
     public function index()
@@ -46,32 +46,29 @@ class Webhook extends ResourceController
                 $caption        =   $message->caption ?? null;
                 $quotedMsgId    =   $message->quotedMsgId ?? null;
                 $isForwarded    =   $message->isForwarded ?? null;
-                $time           =   $message->time ?? null;
+                $timeStamp      =   $message->time ?? null;
 
                 if(!$fromMe){
                     $phoneNumber    =   getPhoneNumberFromWhatsappAuthor($author);
-                    $idChatList     =   $mainOperation->getIdChatListByPhoneNumber($phoneNumber);
-                    $time           =   Time::createFromTimestamp($time, 'GMT');
-                    $dateTime       =   $time->setTimezone('Asia/Makassar')->toDateTimeString();
+                    $detailChatList =   $mainOperation->getDetailChatListByPhoneNumber($phoneNumber);
+                    $idContact      =   $detailChatList['IDCONTACT'] ?? null;
 
-                    if($idChatList){
-                        $arrInsertThread=   [
-                            'IDCHATLIST'        =>  $idChatList,
-                            'IDUSERADMIN'       =>  0,
-                            'IDMESSAGE'         =>  $messageId,
-                            'CHATCONTENTBODY'   =>  $messageBody,
-                            'CHATDATETIME'      =>  $dateTime,
-                            'STATUSREAD'        =>  0,
-                            'ISTEMPLATE'        =>  false
+                    if(!$detailChatList){
+                        $idCountry          =   $mainOperation->getCountryCodeByPhoneNumber($phoneNumber);
+                        $arrInsertContact   =   [
+                            'IDCOUNTRY'         =>  $idCountry,
+                            'IDNAMETITLE'       =>  0,
+                            'NAMEFULL'          =>  $senderName,
+                            'PHONENUMBER'       =>  $phoneNumber,
+                            'EMAILS'            =>  '',
+                            'ISVALIDWHATSAPP'   =>  1,
+                            'DATETIMEINSERT'    =>  date('Y-m-d H:i:s')
                         ];
-                        $mainOperation->insertDataTable('t_chatthread', $arrInsertThread);
-
-                        $arrUpdateReferenceRTDB =   [
-                            'idMessage' =>  $messageId,
-                            'timestamp' =>  $this->epochDatetime
-                        ];
-                        $firebaseRTDB->updateRealtimeDatabaseValue('newMessage', $arrUpdateReferenceRTDB);
+                        $procInsertContact   =   $mainOperation->insertDataTable('t_contact', $arrInsertContact);
+                        if($procInsertContact['status']) $idContact = $procInsertContact['insertID'];
                     }
+
+                    if(!is_null($idContact)) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 0);
                 }
             }
         } else if(!is_null($acks)) {

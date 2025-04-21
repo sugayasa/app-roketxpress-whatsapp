@@ -44,14 +44,15 @@ class Access extends ResourceController
 
         if(!$this->validate($rules)) return $this->fail($this->validator->getErrors());
 
-        $hardwareID     =   strtoupper($this->request->getVar('hardwareID'));
-        $header         =   $this->request->getServer('HTTP_AUTHORIZATION');
-        $explodeHeader  =   $header != "" ? explode(' ', $header) : [];
-        $token          =   is_array($explodeHeader) && isset($explodeHeader[1]) && $explodeHeader[1] != "" ? $explodeHeader[1] : "";
-        $timeCreate     =   Time::now(APP_TIMEZONE)->toDateTimeString();
-        $statusCode     =   401;
-        $responseMsg    =   'Please enter your username and password';
-        $captchaCode    =   generateRandomCharacter(4, 3);
+        $hardwareID         =   strtoupper($this->request->getVar('hardwareID'));
+        $userTimeZoneOffset =   $this->request->getVar('userTimeZoneOffset');
+        $header             =   $this->request->getServer('HTTP_AUTHORIZATION');
+        $explodeHeader      =   $header != "" ? explode(' ', $header) : [];
+        $token              =   is_array($explodeHeader) && isset($explodeHeader[1]) && $explodeHeader[1] != "" ? $explodeHeader[1] : "";
+        $timeCreate         =   Time::now(APP_TIMEZONE)->toDateTimeString();
+        $statusCode         =   401;
+        $responseMsg        =   'Please enter your username and password';
+        $captchaCode        =   generateRandomCharacter(4, 3);
 
         $userAdminData  =   array(
             "name"  =>   "",
@@ -66,6 +67,7 @@ class Access extends ResourceController
             "email"             =>  "",
             "captchaCode"       =>  $captchaCode,
             "hardwareID"        =>  $hardwareID,
+            "userTimeZoneOffset"=>  $userTimeZoneOffset,
             "timeCreate"        =>  $timeCreate
         );
 

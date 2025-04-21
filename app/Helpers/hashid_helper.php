@@ -41,7 +41,7 @@ if(!function_exists('getHashKey')){
         } catch (\Throwable $th) {
         }
 
-        if($keyDefault) return getenv('HASHID_KEY');
+        if($keyDefault) return $_ENV['HASHID_KEY'];
 
         if(isset($requestParam->hardwareID) && $requestParam->hardwareID != ""){
             $hardwareID =   $requestParam->hardwareID;
@@ -68,12 +68,12 @@ if(!function_exists('getHashKey')){
 }
 
 if(!function_exists('encodeDatabaseObjectResultKey')){
-    function encodeDatabaseObjectResultKey($databaseObjectResult, $keyField){
+    function encodeDatabaseObjectResultKey($databaseObjectResult, $keyField, $keyDefault = false){
         $keyField   =   is_array($keyField) ? $keyField : [$keyField];
         if(!is_null($databaseObjectResult) && $databaseObjectResult){
             foreach($databaseObjectResult as $keyUserObjectResult){
                 foreach($keyField as $field){
-                    $keyUserObjectResult->$field    =   hashidEncode($keyUserObjectResult->$field);
+                    $keyUserObjectResult->$field    =   hashidEncode($keyUserObjectResult->$field, $keyDefault);
                 }
 			}
             return $databaseObjectResult;

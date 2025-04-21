@@ -17,7 +17,7 @@
 		  database		= 	getDatabase(app),
 		  rtdb_appPath	=	'<?=FIREBASE_RTDB_MAINREF_NAME?>/',
 		  currentACK	=	ref(database, rtdb_appPath + 'currentACK'),
-		  newMessage	=	ref(database, rtdb_appPath + 'newMessage');
+		  lastUpdateChat=	ref(database, rtdb_appPath + 'lastUpdateChat');
 
 	onValue(currentACK, (snapshot) => {
 		const lastAlias = localStorage.getItem('lastAlias'),
@@ -47,6 +47,107 @@
 					}
 					elemIconACK.removeClass('ri-hourglass-2-fill ri-check-line ri-check-double-line text-muted text-primary').addClass(newIconACK).parent().attr('data-ack-' + type, dateTimeStr);
 				}
+			}
+		}
+	});
+
+	onValue(lastUpdateChat, (snapshot) => {
+		const lastAlias = localStorage.getItem('lastAlias'),
+			lastUpdateChat = snapshot.val();
+
+		if (
+			lastUpdateChat !== undefined &&
+			lastUpdateChat != "" &&
+			lastUpdateChat !== null
+		) {
+			const contactInitial = lastUpdateChat.contactInitial,
+				contactName = lastUpdateChat.contactName,
+				idChatList = lastUpdateChat.idChatList,
+				isNewMessage = lastUpdateChat.isNewMessage,
+				messageBodyTrim = lastUpdateChat.messageBodyTrim,
+				timestamp = lastUpdateChat.timestamp,
+				totalUnreadMessage = lastUpdateChat.totalUnreadMessage,
+				messageDetail = lastUpdateChat.messageDetail;
+
+			if (lastAlias == 'CHT') {
+				let chatListItem = $(".chatList-item[data-idChatList='" + idChatList + "']"),
+					chatListItemActiveId = $(".chatList-item.active").attr('data-idChatList'),
+					containerConversation = $("#chat-conversation-ul");
+
+				if(chatListItem.length > 0){
+					let chatListItemCounter = chatListItem.find('.unread-message');
+					chatListItem.find('.chat-user-message').text(messageBodyTrim);
+
+					if(totalUnreadMessage > 0){
+						if(chatListItemCounter.length > 0){
+							chatListItemCounter.find('.badge').text(totalUnreadMessage);
+						} else {
+							let chatListItemCounterHtml = '<div class="unread-message"><span class="badge badge-soft-danger rounded-pill">'+totalUnreadMessage+'</span></div>';
+							chatListItem.find('div.d-flex').append(chatListItemCounterHtml);
+						}
+					} else {
+						chatListItemCounter.remove();
+					}
+
+					if(isNewMessage)  {
+						chatListItem.attr('data-timestamp', timestamp);
+						chatListItem.find('div.chatList-item-time').text('Just Now');
+						chatListItem.prependTo("#list-chatListData");
+					}
+				} else {
+					if(isNewMessage){
+						let chatListItemHtml =	'<li class="unread chatList-item" data-idchatlist="'+idChatList+'" data-timestamp="'+timestamp+'">\
+													<a href="#">\
+														<div class="d-flex">\
+															<div class="chat-user-img align-self-center me-3 ms-0">\
+																<div class="avatar-xs">\
+																	<span class="avatar-title rounded-circle bg-primary-subtle text-primary">'+contactInitial+'</span>\
+																</div>\
+															</div>\
+															<div class="flex-grow-1 overflow-hidden">\
+																<h5 class="text-truncate font-size-15 mb-1">'+contactName+'</h5>\
+																<p class="chat-user-message text-truncate mb-0">'+messageBodyTrim+'</p>\
+															</div>\
+															<div class="chatList-item-time font-size-11">Just Now</div>\
+														</div>\
+													</a>\
+												</li>';
+						$("#list-chatListData").prepend(chatListItemHtml);
+					}
+				}
+				counterTimeChatList();
+
+				if(containerConversation.length > 0){
+					if(chatListItemActiveId == idChatList){
+						let senderName = messageDetail.senderName,
+							chatThreadPosition = messageDetail.chatThreadPosition,
+							arrayChatThread = messageDetail.arrayChatThread,
+							chatTime = moment.unix(timestamp).tz(timezoneOffset).format('HH:mm'),
+							idMessage = arrayChatThread.IDMESSAGE;
+
+						if($(".ctext-wrap[data-idMessage='" + idMessage + "']").length <= 0){
+							let elemLastChatThread = containerConversation.find('li:last-child'),
+								lastSenderName = elemLastChatThread.find('.conversation-name').html(),
+                            	textStartClass = arrayChatThread.ISTEMPLATE ? 'text-start' : '',
+								chatContent = generateChatContent(arrayChatThread),
+                        		chatContentWrap = generateChatContentWrap(chatThreadPosition, arrayChatThread, chatContent, chatTime, textStartClass);
+
+							if(senderName == lastSenderName){
+								let elemContentWrapContainer = $("#chat-conversation-ul").find('li:last-child').find('.user-chat-content'),
+									elemConversationName = elemContentWrapContainer.find('.conversation-name');
+								
+								elemConversationName.before(chatContentWrap);
+							} else {
+								let classRight = chatThreadPosition == 'L' ? '' : 'right',
+									chatThread = generateRowChatThread(classRight, senderName.charAt(0), chatContentWrap, senderName);
+								$('#chat-conversation-ul').append(chatThread);
+							}
+							scrollToBottomSimpleBar('chat-conversation');
+						}
+					}
+				}
+
+				if (isNewMessage && document.visibilityState === 'visible') updateUnreadMessageCountOnActiveVisibilityWindow();
 			}
 		}
 	});
