@@ -52,7 +52,7 @@
 	});
 
 	onValue(lastUpdateChat, (snapshot) => {
-		const lastAlias = localStorage.getItem('lastAlias'),
+		const activeMenu = $(".nav-link.active").closest('li').attr('id'),
 			lastUpdateChat = snapshot.val();
 
 		if (
@@ -66,10 +66,11 @@
 				isNewMessage = lastUpdateChat.isNewMessage,
 				messageBodyTrim = lastUpdateChat.messageBodyTrim,
 				timestamp = lastUpdateChat.timestamp,
+				dateTimeLastReply = lastUpdateChat.dateTimeLastReply,
 				totalUnreadMessage = lastUpdateChat.totalUnreadMessage,
 				messageDetail = lastUpdateChat.messageDetail;
 
-			if (lastAlias == 'CHT') {
+			if (activeMenu == 'menuCHT') {
 				let chatListItem = $(".chatList-item[data-idChatList='" + idChatList + "']"),
 					chatListItemActiveId = $(".chatList-item.active").attr('data-idChatList'),
 					containerConversation = $("#chat-conversation-ul");
@@ -90,13 +91,13 @@
 					}
 
 					if(isNewMessage)  {
-						chatListItem.attr('data-timestamp', timestamp);
+						chatListItem.attr('data-timestamp', timestamp).attr('data-datetimelastreply', dateTimeLastReply);
 						chatListItem.find('div.chatList-item-time').text('Just Now');
 						chatListItem.prependTo("#list-chatListData");
 					}
 				} else {
 					if(isNewMessage){
-						let chatListItemHtml =	'<li class="unread chatList-item" data-idchatlist="'+idChatList+'" data-timestamp="'+timestamp+'">\
+						let chatListItemHtml =	'<li class="unread chatList-item" data-idchatlist="'+idChatList+'" data-timestamp="'+timestamp+'" data-datetimelastreply="'+dateTimeLastReply+'">\
 													<a href="#">\
 														<div class="d-flex">\
 															<div class="chat-user-img align-self-center me-3 ms-0">\
@@ -144,10 +145,23 @@
 							}
 							scrollToBottomSimpleBar('chat-conversation');
 						}
+
+						$("#chat-timeStampLastReply").val(dateTimeLastReply);
 					}
 				}
 
 				if (isNewMessage && document.visibilityState === 'visible') updateUnreadMessageCountOnActiveVisibilityWindow();
+			} else if(activeMenu == 'menuCNCT') {
+				let contactListItem = $(".contact-item[data-idChatList='" + idChatList + "']");
+				if(contactListItem.length > 0){
+					contactListItem.attr('data-timeStampLastReply', dateTimeLastReply);
+				}
+				
+				let idChatListActiveContact = $("#wrapper-contactDetails").attr("data-idChatList");
+				if(idChatList == idChatListActiveContact){
+					$("#detailContact-iconSession").attr('data-timeStampLastReply', dateTimeLastReply);
+					activateCounterChatSession();
+				}
 			}
 		}
 	});

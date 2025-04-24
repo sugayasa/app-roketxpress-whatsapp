@@ -1,6 +1,6 @@
 <div class="d-lg-flex content-menu px-4 pt-4 pb-2" id="content-contact">
     <div class="w-100 overflow-hidden position-relative">
-        <div class="px-2 pb-2" id="wrapper-contactDetails">
+        <div class="px-2 pb-2" id="wrapper-contactDetails" data-idChatList="">
             <div class="d-block d-lg-none mx-0 mb-3 pb-2 border-bottom">
                 <span class="user-chat-remove text-muted d-flex align-items-center">
                     <i class="ri-arrow-left-s-line font-size-22 me-2"></i> 
@@ -19,7 +19,8 @@
                         <i class="font-size-17 text-muted ri-mail-fill"></i><span class="font-size-15 text-muted mx-2" id="detailContact-email">| -</span>
                     </p>
                     <p class="small mb-3 d-flex">
-                        <i class="font-size-17 text-muted ri-time-line"></i><span class="font-size-15 text-muted mx-2" id="detailContact-lastReplyDateTime">| -</span>
+                        <i id="detailContact-iconSession" class="font-size-17 text-sucess ri-circle-fill" data-timeStampLastReply="0"></i>
+                        <span class="font-size-15 text-muted mx-2" id="detailContact-badgeSession">| -</span>
                         <button type="button" id="detailContact-btnSendMessage" class="btn btn-sm btn-success ms-auto"><span><i class="ri-chat-1-line me-1"></i>Send Message</span></button>
                     </p>
                     <div class="alert alert-warning d-flex align-items-center d-none" role="alert" id="detailContact-invalidWhatsAppAcountAlert">

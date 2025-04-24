@@ -43,17 +43,19 @@ class ContactModel extends Model
     {	
         $dataPerPage=   100;
         $pageOffset =   ($page - 1) * $dataPerPage;
-        $this->select("IDCONTACT, NAMEFULL, LEFT(NAMEFULL, 1) AS NAMEALPHASEPARATOR, PHONENUMBER, EMAILS");
-        $this->from('t_contact', true);
+        $this->select("A.IDCONTACT, A.NAMEFULL, LEFT(A.NAMEFULL, 1) AS NAMEALPHASEPARATOR, A.PHONENUMBER, A.EMAILS,
+                    IFNULL(B.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY, B.IDCHATLIST");
+        $this->from('t_contact AS A', true);
+        $this->join('t_chatlist AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
         if(isset($searchKeyword) && !is_null($searchKeyword) && $searchKeyword != '') {
             $this->groupStart();
-            $this->like('NAMEFULL', $searchKeyword, 'both')
-            ->orLike('PHONENUMBER', $searchKeyword, 'both')
-            ->orLike('EMAILS', $searchKeyword, 'both');
+            $this->like('A.NAMEFULL', $searchKeyword, 'both')
+            ->orLike('A.PHONENUMBER', $searchKeyword, 'both')
+            ->orLike('A.EMAILS', $searchKeyword, 'both');
             $this->groupEnd();
         }
-        $this->groupBy('IDCONTACT');
-        if($recentlyAdded) $this->orderBy('DATETIMEINSERT DESC, IDCONTACT');
+        $this->groupBy('A.IDCONTACT');
+        if($recentlyAdded) $this->orderBy('A.DATETIMEINSERT DESC, A.IDCONTACT');
         $this->limit($dataPerPage, $pageOffset);
 
         $result =   $this->get()->getResultObject();
@@ -64,9 +66,11 @@ class ContactModel extends Model
 
     public function getDataContactReservation($dateReservation, $searchKeyword)
     {	
-        $this->select("A.IDCONTACT, A.NAMEFULL, LEFT(A.NAMEFULL, 1) AS NAMEALPHASEPARATOR, A.PHONENUMBER, A.EMAILS");
+        $this->select("A.IDCONTACT, A.NAMEFULL, LEFT(A.NAMEFULL, 1) AS NAMEALPHASEPARATOR, A.PHONENUMBER, A.EMAILS,
+                    IFNULL(C.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY, C.IDCHATLIST");
         $this->from('t_contact A', true);
         $this->join(APP_MAIN_DATABASE_NAME.'.t_reservation AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
+        $this->join('t_chatlist AS C', 'A.IDCONTACT = C.IDCONTACT', 'LEFT');
         $this->where("'".$dateReservation."' BETWEEN B.RESERVATIONDATESTART AND B.RESERVATIONDATEEND");
         if(isset($searchKeyword) && !is_null($searchKeyword) && $searchKeyword != '') {
             $this->groupStart();
@@ -105,7 +109,7 @@ class ContactModel extends Model
                         )
                     ),
                 ']'
-            ) AS ARRAYSOURCE, A.ISVALIDWHATSAPP"
+            ) AS ARRAYSOURCE, A.ISVALIDWHATSAPP, F.DATETIMELASTREPLY AS TIMESTAMPLASTREPLY, F.IDCHATLIST"
         );
         $this->from('t_contact A', true);
         $this->join('m_country AS B', 'A.IDCOUNTRY = B.IDCOUNTRY', 'LEFT');

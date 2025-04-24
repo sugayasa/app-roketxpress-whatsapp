@@ -182,13 +182,13 @@ class MainOperation extends Model
         return $result;
     }
 
-    public function insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin = 1) : void
+    public function insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageGenerated, $idUserAdmin = 1) : void
     {
         $idChatList             =   $this->getIdChatList($idContact);
-        $messageHeader          =   isset($messageTemplateGenerated['header']) ? $messageTemplateGenerated['header'] : '';
-        $messageBody            =   isset($messageTemplateGenerated['body']) ? $messageTemplateGenerated['body'] : $messageTemplateGenerated;
-        $messageFooter          =   isset($messageTemplateGenerated['footer']) ? $messageTemplateGenerated['footer'] : '';
-        $isTemplateMessage      =   isset($messageTemplateGenerated['body']) ? 1 : 0;
+        $messageHeader          =   isset($messageGenerated['header']) ? $messageGenerated['header'] : '';
+        $messageBody            =   isset($messageGenerated['body']) ? $messageGenerated['body'] : $messageGenerated;
+        $messageFooter          =   isset($messageGenerated['footer']) ? $messageGenerated['footer'] : '';
+        $isTemplateMessage      =   isset($messageGenerated['body']) ? 1 : 0;
         $arrInsertUpdateChatList=   [
             "IDCONTACT"             =>  $idContact,
             "TOTALUNREADMESSAGE"    =>  0,
@@ -317,6 +317,7 @@ class MainOperation extends Model
                 'isNewMessage'      =>  $isNewMessage,
                 'messageBodyTrim'   =>  $lastMessageTrim,
                 'timestamp'         =>  $timeStampRTDB,
+                'dateTimeLastReply' =>  is_null($dateTimeLastReply) ? 0 : $dateTimeLastReply,
                 'totalUnreadMessage'=>  $totalUnreadMessage,
                 'messageDetail'     =>  [
                     'senderName'        =>  $senderName,

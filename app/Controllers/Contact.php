@@ -82,7 +82,10 @@ class Contact extends ResourceController
         }
 
         $askQuestionTemplate    =   $mainOperation->getDataChatTemplate(4);
-        if($dataContact && count($dataContact) > 0) $dataContact        =   encodeDatabaseObjectResultKey($dataContact, 'IDCONTACT');
+        if($dataContact && count($dataContact) > 0) {
+            $dataContact        =   encodeDatabaseObjectResultKey($dataContact, 'IDCONTACT');
+            $dataContact        =   encodeDatabaseObjectResultKey($dataContact, 'IDCHATLIST', true);
+        }
         if($askQuestionTemplate) $askQuestionTemplate['IDCHATTEMPLATE'] =   hashidEncode($askQuestionTemplate['IDCHATTEMPLATE']);
         return $this->setResponseFormat('json')
                     ->respond([
@@ -110,18 +113,16 @@ class Contact extends ResourceController
         $contactModel           =   new ContactModel();
         $idContact              =   $this->request->getVar('idContact');
         $idContact              =   hashidDecode($idContact);
-        $userTimeZoneOffset     =   $this->userData->userTimeZoneOffset;
         $detailContact          =   $contactModel->getDetailContact($idContact);
         $listDetailReservation  =   $contactModel->getListDetailReservation($idContact);
         $lastReplyDateTime      =   $detailContact['DATETIMELASTREPLY'];
-        $lastReplyDateTimeTF    =   $lastReplyDateTime == '' ? '' : Time::createFromTimestamp($lastReplyDateTime, 'UTC')->setTimezone($userTimeZoneOffset);
+        $lastReplyDateTimeTF    =   $lastReplyDateTime == '' ? '' : Time::createFromTimestamp($lastReplyDateTime);
         $lastReplyDateTimeStr   =   $lastReplyDateTime == '' ? '' : $lastReplyDateTimeTF->toLocalizedString('yyyy-MM-dd HH:mm:ss');
         $isChatSessionActive    =   false;
 
         if($lastReplyDateTimeStr != ''){
             $lastReplyDateTimeIntervalMinutes   =   getDateTimeIntervalMinutes($lastReplyDateTimeStr);
-            $detailContact['DATETIMELASTREPLY'] =   getDateTimeIntervalStringInfo($lastReplyDateTimeStr, 24);
-            if($lastReplyDateTimeIntervalMinutes <= (23.5 * 60)) $isChatSessionActive   =   true;
+            if($lastReplyDateTimeIntervalMinutes <= (24 * 60)) $isChatSessionActive   =   true;
         }
 
         if($listDetailReservation){
@@ -144,6 +145,7 @@ class Contact extends ResourceController
             $listDetailReservation  =   encodeDatabaseObjectResultKey($listDetailReservation, 'IDRESERVATION');
         }
 
+        $detailContact['IDCHATLIST']    =   hashidEncode($detailContact['IDCHATLIST'], true);
         return $this->setResponseFormat('json')
                     ->respond([
                         "detailContact"         =>  $detailContact,

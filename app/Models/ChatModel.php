@@ -43,7 +43,7 @@ class ChatModel extends Model
     {	
         $pageOffset     =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, A.TOTALUNREADMESSAGE, A.LASTMESSAGE, A.DATETIMELASTMESSAGE,
-                '' AS DATETIMELASTMESSAGESTR");
+                '' AS DATETIMELASTMESSAGESTR, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
         if(isset($searchKeyword) && !is_null($searchKeyword) && $searchKeyword != '' && ($idContact == null || $idContact == '')) {
@@ -69,7 +69,8 @@ class ChatModel extends Model
     public function getDetailContactChat($idChatList)
     {	
         $this->select("LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, B.PHONENUMBER, C.COUNTRYNAME, D.CONTINENTNAME,
-                    IF(B.EMAILS = '' OR B.EMAILS IS NULL, '-', B.EMAILS) AS EMAILS, A.IDCONTACT");
+                    IF(B.EMAILS = '' OR B.EMAILS IS NULL, '-', B.EMAILS) AS EMAILS, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY,
+                    A.IDCONTACT");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
         $this->join('m_country AS C', 'B.IDCOUNTRY = C.IDCOUNTRY', 'LEFT');

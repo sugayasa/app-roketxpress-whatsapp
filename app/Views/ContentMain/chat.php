@@ -20,7 +20,10 @@
                             </div>
                         </div>
                         <div class="flex-grow-1 overflow-hidden">
-                            <h5 class="font-size-16 mb-0 text-truncate"><a id="chat-topbar-fullName" href="#" class="text-reset user-profile-show">-</a></h5>
+                            <h5 class="font-size-16 mb-0 text-truncate">
+                                <a id="chat-topbar-fullName" href="#" class="text-reset user-profile-show">-</a><br/>
+                                <span id="chat-topbar-badgeSession" class="badge text-white font-size-12 align-middle">-</span>
+                            </h5>
                         </div>
                     </div>
                 </div>
@@ -55,6 +58,7 @@
                         <ul class="list-inline mb-0">
                             <li class="list-inline-item">
                                 <input type="hidden" id="chat-idContact" name="chat-idContact" value="">
+                                <input type="hidden" id="chat-timeStampLastReply" name="chat-timeStampLastReply" value="0">
                                 <button type="submit" class="btn btn-primary font-size-16 btn-lg chat-send waves-effect waves-light" id="chat-btnSendMessage"><i class="ri-send-plane-2-fill"></i></button>
                             </li>
                         </ul>
