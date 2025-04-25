@@ -181,15 +181,13 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 <script>
 	localStorage.setItem('lastApplicationLoadTime', '<?=gmdate("YmdHis")?>');
 	localStorage.setItem('allowNotifList', '<?=json_encode($allowNotifList)?>');
-	var baseURL					=	'<?=BASE_URL?>',
-		loaderElem				=	"<center class='mt-5 font-size-14' id='loaderElem'>"+
-									"	<img src='<?=BASE_URL_ASSETS_IMG?>loader_content.gif' class='height-25'/><br/><br/>"+
-									"	Loading Content..."+
-									"</center>",
-		arrBadgeType			=	['dark', 'primary', 'warning', 'info', 'success', 'secondary', 'danger'],
-		notificationSound		=	new Audio('<?=BASE_URL_ASSETS_SOUND?>notification.mp3'),
-		notificationSoundAlarm	=	new Audio('<?=BASE_URL_ASSETS_SOUND?>old_alarm_sound.mp3'),
-		notificationSoundSS		=	new Audio('<?=BASE_URL_ASSETS_SOUND?>sixth_sense.mp3');
+	localStorage.setItem('appVisibility', true);
+	var baseURL				=	'<?=BASE_URL?>',
+		baseURLAssetsSound	=	'<?=BASE_URL_ASSETS_SOUND?>',
+		loaderElem			=	"<center class='mt-5 font-size-14' id='loaderElem'>"+
+								"	<img src='<?=BASE_URL_ASSETS_IMG?>loader_content.gif' class='height-25'/><br/><br/>"+
+								"	Loading Content..."+
+								"</center>";
 		
 	$.ajaxSetup({ cache: true });
 

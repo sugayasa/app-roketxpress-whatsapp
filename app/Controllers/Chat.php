@@ -227,10 +227,11 @@ class Chat extends ResourceController
             $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $message, $idUserAdmin);
 
             return throwResponseOK('Message sent successfully', [
-                'idMessage'     =>  $idMessage,
-                'phoneNumber'   =>  $phoneNumber,
-                'message'       =>  $message,
-                'dateTimeChat'  =>  Time::now('UTC')->setTimezone($userTimeZoneOffset)->toLocalizedString('H:mm')
+                'idMessage'         =>  $idMessage,
+                'phoneNumber'       =>  $phoneNumber,
+                'message'           =>  $message,
+                'currentTimeStamp'  =>  $currentTimeStamp,
+                'dateTimeChat'      =>  Time::now('UTC')->setTimezone($userTimeZoneOffset)->toLocalizedString('H:mm')
             ]);
         }
     }

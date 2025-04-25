@@ -68,11 +68,12 @@
 				timestamp = lastUpdateChat.timestamp,
 				dateTimeLastReply = lastUpdateChat.dateTimeLastReply,
 				totalUnreadMessage = lastUpdateChat.totalUnreadMessage,
-				messageDetail = lastUpdateChat.messageDetail;
+				messageDetail = lastUpdateChat.messageDetail,
+				lastNotifTimeStamp = localStorage.getItem('lastNotifTimeStamp');
 
 			if (activeMenu == 'menuCHT') {
 				let chatListItem = $(".chatList-item[data-idChatList='" + idChatList + "']"),
-					chatListItemActiveId = $(".chatList-item.active").attr('data-idChatList'),
+					chatListItemActiveId = $("#chat-idChatList").val(),
 					containerConversation = $("#chat-conversation-ul");
 
 				if(chatListItem.length > 0){
@@ -96,7 +97,8 @@
 						chatListItem.prependTo("#list-chatListData");
 					}
 				} else {
-					if(isNewMessage){
+					let isSearchActive = $("#filter-isSearchActive").val();
+					if(isNewMessage && !isSearchActive){
 						let chatListItemHtml =	'<li class="unread chatList-item" data-idchatlist="'+idChatList+'" data-timestamp="'+timestamp+'" data-datetimelastreply="'+dateTimeLastReply+'">\
 													<a href="#">\
 														<div class="d-flex">\
@@ -143,6 +145,7 @@
 									chatThread = generateRowChatThread(classRight, senderName.charAt(0), chatContentWrap, senderName);
 								$('#chat-conversation-ul').append(chatThread);
 							}
+
 							scrollToBottomSimpleBar('chat-conversation');
 						}
 
@@ -162,6 +165,21 @@
 					$("#detailContact-iconSession").attr('data-timeStampLastReply', dateTimeLastReply);
 					activateCounterChatSession();
 				}
+			}
+
+			if(isNewMessage && lastNotifTimeStamp != timestamp){
+				if (document.visibilityState === 'visible') {
+					let chatListItemActiveId = $("#chat-idChatList").val();
+					if(chatListItemActiveId == idChatList) {
+						playStoredAudio("message_received_active");
+					} else {
+						playStoredAudio("message_received_background");
+					}
+				} else {
+					let appVisibility = localStorage.getItem('appVisibility');
+					if(appVisibility == false || appVisibility == 'false') playStoredAudio("message_received_background");
+				}
+				localStorage.setItem('lastNotifTimeStamp', timestamp);
 			}
 		}
 	});

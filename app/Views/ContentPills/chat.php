@@ -5,13 +5,18 @@
             <div class="mb-3 search-box chat-search-box">
                 <div class="input-group bg-light input-group-lg border rounded-3">
                     <div class="input-group-prepend">
-                            <button class="btn btn-link text-decoration-none text-muted pe-1 ps-3" type="button">
-                                <i class="ri-search-line search-icon font-size-14"></i>
-                            </button>
+                        <button class="btn btn-link text-decoration-none text-muted pe-1 ps-3" type="button">
+                            <i class="ri-search-line search-icon font-size-14"></i>
                         </button>
                     </div>
-                    <input type="hidden" id="filter-idContact" name="filter-idContact" value="">
                     <input type="text" class="form-control bg-light" placeholder="Search messages or users" aria-label="Search messages or contact" aria-describedby="basic-addon1" id="filter-searchKeyword" name="filter-searchKeyword">
+                    <input type="hidden" id="filter-idContact" name="filter-idContact" value="">
+                    <input type="hidden" id="filter-isSearchActive" name="filter-isSearchActive" value="">
+                    <div class="input-group-append d-none">
+                        <button class="btn btn-link text-decoration-none text-muted pe-3 ps-1" type="button">
+                            <i class="ri-close-large-line search-icon font-size-14"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
