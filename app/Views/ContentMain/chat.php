@@ -105,6 +105,7 @@
     </div>
 </div>
 <script>
-	var jsFileUrl = "<?=BASE_URL_ASSETS_JS?>menu/chat.js?<?=date("YmdHis")?>";
+	var jsFileUrl   =   "<?=BASE_URL_ASSETS_JS?>menu/chat.js?<?=date("YmdHis")?>";
+        localStorage.setItem('idUserAdminMenuChat', "<?=$idUserAdmin?>");
 	$.getScript(jsFileUrl);
 </script>

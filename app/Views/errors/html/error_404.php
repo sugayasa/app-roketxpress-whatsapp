@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title><?= lang('Errors.pageNotFound') ?></title>
+    <title><?= APP_NAME.' - '.lang('Errors.pageNotFound') ?></title>
+    <link rel="icon" href="<?=BASE_URL_ASSETS_IMG?>logo-single-2025.ico" type="image/x-icon"/>
 
     <style>
         div.logo {
@@ -70,8 +71,8 @@
 </head>
 <body>
     <div class="wrap">
+        <img src="<?= BASE_URL_ASSETS_IMG ?>logo-single-2025.png" alt="<?=APP_NAME?> Logo" style="max-width: 120px; height: auto; margin-bottom: 50px;">
         <h1>404</h1>
-
         <p>
             <?php if (ENVIRONMENT !== 'production') : ?>
                 <?= nl2br(esc($message)) ?>

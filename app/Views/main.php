@@ -30,6 +30,9 @@
 			</div>
 		</div>
 	</body>
+	<script>
+		window.history.replaceState(null, "", "<?=BASE_URL?>");
+	</script>
 	<script src="<?=BASE_URL_ASSETS_JS?>moment.min.js?<?=date('YmdHis')?>"></script>
 	<script src="https://momentjs.com/downloads/moment-timezone-with-data.js"></script>
 	<script src="<?=BASE_URL_ASSETS_JS?>ubid-0.1.2.min.js"></script>

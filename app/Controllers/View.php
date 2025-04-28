@@ -45,7 +45,7 @@ class View extends ResourceController
                             );
         $contentMain    =   view(
                                 'ContentMain/chat',
-                                [],
+                                ['idUserAdmin' => hashidEncode($this->userData->idUserAdmin, true)],
                                 ['debug' => false]
                             );
         return $this->setResponseFormat('json')

@@ -37,6 +37,7 @@ $routes->post('/mainPage', 'Index::mainPage', ['filter' => 'auth:mustBeLoggedIn'
 
 $routes->post('access/check', 'Access::check');
 $routes->post('access/login', 'Access::login', ['filter' => 'auth:mustNotBeLoggedIn']);
+$routes->get('access/roketRedirect/(:any)', 'Access::roketRedirect/$1');
 $routes->get('access/logout/(:any)', 'Access::logout/$1');
 $routes->get('access/captcha/(:any)', 'Access::captcha/$1');
 $routes->post('access/getDataOption', 'Access::getDataOption', ['filter' => 'auth:mustBeLoggedIn']);

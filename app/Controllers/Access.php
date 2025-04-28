@@ -45,6 +45,7 @@ class Access extends ResourceController
         if(!$this->validate($rules)) return $this->fail($this->validator->getErrors());
 
         $hardwareID         =   strtoupper($this->request->getVar('hardwareID'));
+        $username           =   $this->request->getVar('username');
         $userTimeZoneOffset =   $this->request->getVar('userTimeZoneOffset');
         $header             =   $this->request->getServer('HTTP_AUTHORIZATION');
         $explodeHeader      =   $header != "" ? explode(' ', $header) : [];
@@ -89,6 +90,7 @@ class Access extends ResourceController
                     if(!$userAdminDataDB || is_null($userAdminDataDB)) return throwResponseUnauthorized('[E-AUTH-001.1.0] Your user is not registered. Please log in to continue', ['token'=>$defaultToken]);
 
                     $hardwareIDDB   =   $userAdminDataDB['HARDWAREID'];
+                    $usernameDB     =   $userAdminDataDB['USERNAME'];
 
                     if($hardwareID == $hardwareIDDB && $hardwareID == $hardwareIDToken){
                         $timeCreateToken    =   Time::parse($timeCreateToken, APP_TIMEZONE);
@@ -104,6 +106,13 @@ class Access extends ResourceController
                             "name"  =>   $userAdminDataDB['NAME'],
                             "email" =>   $userAdminDataDB['EMAIL']
                         ];
+
+                        if(isset($username) && $username != null){
+                            if($username != $usernameDB) {
+                                $accessModel->where('HARDWAREID', $hardwareID)->set('HARDWAREID', 'null', false)->update();
+                                return throwResponseConlflict('Invalid user, unmatched user credentials');
+                            }
+                        }
 
                         $tokenPayload['idUserAdmin']        =   $idUserAdmin;
                         $tokenPayload['idUserAdminLevel']   =   $userAdminDataDB['IDUSERADMINLEVEL'];
@@ -195,6 +204,36 @@ class Access extends ResourceController
                     ]);		
     }
 
+    public function roketRedirect($base64JsonData = false)
+    {
+        if(!$base64JsonData || $base64JsonData == "") return view('errors/html/error_404', ['message' => '404 - Page not found']);
+        helper(['firebaseJWT']);
+
+        try {
+            $accessModel    =   new AccessModel();
+            $dataDecode     =   json_decode(base64_decode($base64JsonData));
+            $redirectToken  =   $dataDecode->redirectToken;
+            $destinationMenu=   $dataDecode->destinationMenu;
+            $parameters     =   $dataDecode->parameters;
+            $userAdminData  =   $accessModel
+                                ->select('USERNAME')
+                                ->where("REDIRECTTOKEN", $redirectToken)
+                                ->first();
+
+            if(!$userAdminData || is_null($userAdminData)) return view('errors/html/error_404', ['message' => '404 - Invalid token acess']);
+            return view(
+                'loginRedirect',
+                [
+                    'username'          =>  $userAdminData['USERNAME'],
+                    'destinationMenu'   =>  $destinationMenu,
+                    'parameters'        =>  json_encode($parameters)
+                ]
+            );
+        } catch (\Throwable $th) {
+            return view('errors/html/error_404', ['message' => '404 - Page not found, invalid data parameters']);
+        }
+    }
+
     public function logout($token = false)
     {
         if(!$token || $token == "") return $this->failUnauthorized('[E-AUTH-001.1] Token Required');
@@ -209,7 +248,7 @@ class Access extends ResourceController
                                     ->where("IDUSERADMIN", $idUserAdmin)
                                     ->first();
 
-            if(!$userAdminDataDB || is_null($userAdminDataDB)) return $this->failUnauthorized('[E-AUTH-001.3] Invalid token - Not registered');
+            if(!$userAdminDataDB || is_null($userAdminDataDB)) return redirect()->to(BASE_URL.'logoutPage');
 
             $hardwareIDDB       =   $userAdminDataDB['HARDWAREID'];
 
@@ -292,15 +331,14 @@ class Access extends ResourceController
 
     public function detailProfileSetting()
     {
-        $username   =   $this->userData->username;
-        $name       =   $this->userData->name;
-        $email      =   $this->userData->email;
+        $accessModel    =   new AccessModel();
+        $idUserAdmin    =   $this->userData->idUserAdmin;
+        $detailUserAdmin=   $accessModel->getUserAdminDetail($idUserAdmin);
 
+        if(is_null($detailUserAdmin)) return throwResponseNotFound("User admin details not found");
         return $this->setResponseFormat('json')
                     ->respond([
-                        "username"  =>  $username,
-                        "name"      =>  $name,
-                        "email"     =>  $email
+                        "detailUserAdmin"   =>  $detailUserAdmin
                      ]);
     }
 
@@ -311,57 +349,47 @@ class Access extends ResourceController
         $rules          =   [
             'username'  => ['label' => 'Username', 'rules' => 'required|alpha_numeric|min_length[4]'],
             'name'      => ['label' => 'Nama', 'rules' => 'required|alpha_numeric_space|min_length[4]'],
-            'email'     => ['label' => 'Email', 'rules' => 'required|valid_email|is_unique[m_useradmin.EMAIL, IDUSERADMIN, '.$idUserAdmin.']']
         ];
 
-        $notifikasi =   [
-            'email' => ['is_unique' => 'This email address is already registered, please enter another email address'],
-        ];
+        if(!$this->validate($rules)) return $this->fail($this->validator->getErrors());
 
-        if(!$this->validate($rules, $notifikasi)) return $this->fail($this->validator->getErrors());
+        $accessModel        =   new AccessModel();
+        $username           =   $this->request->getVar('username');
+        $name               =   $this->request->getVar('name');
+        $currentPassword    =   $this->request->getVar('currentPassword');
+        $newPassword        =   $this->request->getVar('newPassword');
+        $repeatPassword     =   $this->request->getVar('repeatPassword');
+        $relogin            =   false;
 
-        $accessModel            =   new AccessModel();
-        $username               =   $this->request->getVar('username');
-        $name                   =   $this->request->getVar('name');
-        $email                  =   $this->request->getVar('email');
-        $oldPassword            =   $this->request->getVar('oldPassword');
-        $newPassword            =   $this->request->getVar('newPassword');
-        $repeatPassword         =   $this->request->getVar('repeatPassword');
-        $relogin                =   false;
-
-        $arrUpdateUserPartner   =   [
+        $arrUpdateUserAdmin =   [
             'NAME'      =>  $name,
-            'EMAIL'     =>  $email,
             'USERNAME'  =>  $username
         ];
 
-        if($oldPassword != "" || $newPassword != "" || $repeatPassword != ""){
-			if($oldPassword == "") return throwResponseNotAcceptable("Please enter your old password (your current password)");
+        if($currentPassword != "" || $newPassword != "" || $repeatPassword != ""){
+			if($currentPassword == "") return throwResponseNotAcceptable("Please enter your old password (your current password)");
 			if($newPassword == "") return throwResponseNotAcceptable("Please enter a new password");
             if($repeatPassword == "") return throwResponseNotAcceptable("Please enter a new password repeat");
 			if($newPassword != $repeatPassword) return throwResponseNotAcceptable("The repetition of the password you entered is not match");
 			
             $dataUserAdmin  =   $accessModel->where("IDUSERADMIN", $idUserAdmin)->first();
             if(!$dataUserAdmin) return $this->failNotFound('Your user data was not found, please try again later');
-            $passwordVerify =   password_verify($oldPassword, $dataUserAdmin['PASSWORD']);
+            $passwordVerify =   password_verify($currentPassword, $dataUserAdmin['PASSWORD']);
             if(!$passwordVerify) return $this->fail('The old password you entered is incorrect');
 			
-			$arrUpdateUserPartner['PASSWORD']   =	password_hash($newPassword, PASSWORD_DEFAULT);
-            $relogin                            =   true;
+			$arrUpdateUserAdmin['PASSWORD'] =	password_hash($newPassword, PASSWORD_DEFAULT);
+            $relogin                        =   true;
 		}
 
-        $accessModel->update($idUserAdmin, $arrUpdateUserPartner);
-        $tokenUpdate            =   [
+        $accessModel->update($idUserAdmin, $arrUpdateUserAdmin);
+        $tokenUpdate    =   [
             "username"  =>  $username,
-            "name"      =>  $name,
-            "email"     =>  $email
+            "name"      =>  $name
         ];
 
         return $this->setResponseFormat('json')
                     ->respond([
                         "message"       =>  "Your user data has been updated",
-                        "name"          =>  $name,
-                        "email"         =>  $email,
                         "relogin"       =>  $relogin,
                         "tokenUpdate"   =>  $tokenUpdate
                      ]);

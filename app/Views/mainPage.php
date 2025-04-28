@@ -30,7 +30,7 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 						<span style="font-size: 18px;width: 80%;height: 80%;" class="avatar-title rounded-circle bg-primary-subtle text-primary mx-auto mt-1">G</span>
 					</a>
 					<div class="dropdown-menu mb-2">
-						<a data-toggle="modal" data-target="#modal-userProfile" class="dropdown-item" href="#">Profile <i class="ri-profile-line float-end text-muted"></i></a>
+						<a data-bs-toggle="modal" data-bs-target="#modal-userProfile" class="dropdown-item" href="#">Profile <i class="ri-profile-line float-end text-muted"></i></a>
 						<div class="dropdown-divider"></div>
 						<a class="dropdown-item" href="#" onclick="clearAppData()">Clear Cache <i class="ri-delete-bin-line float-end text-muted"></i></a>
 						<a class="dropdown-item linkLogout" href="#">Log out <i class="ri-logout-circle-r-line float-end text-muted"></i></a>
@@ -50,7 +50,7 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 						<span style="font-size: 18px;width: 80%;height: 80%;" class="avatar-title rounded-circle bg-primary-subtle text-primary mx-auto">G</span>
 					</a>
 					<div class="dropdown-menu mb-2">
-						<a data-toggle="modal" data-target="#modal-userProfile" class="dropdown-item" href="#">Profile <i class="ri-profile-line float-end text-muted"></i></a>
+						<a data-bs-toggle="modal" data-bs-target="#modal-userProfile" class="dropdown-item" href="#">Profile <i class="ri-profile-line float-end text-muted"></i></a>
 						<div class="dropdown-divider"></div>
 						<a class="dropdown-item" href="#" onclick="clearAppData()">Clear Cache <i class="ri-delete-bin-line float-end text-muted"></i></a>
 						<a class="dropdown-item linkLogout" href="#">Log out <i class="ri-logout-circle-r-line float-end text-muted"></i></a>
@@ -66,40 +66,50 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 </div>
 <div class="modal fade" id="modal-userProfile" aria-labelledby="User Profile" aria-hidden="true">
 	<div class="modal-dialog" role="document">
-		<form class="modal-content form-horizontal was-validated" id="form-userProfile">
+		<form class="modal-content form-horizontal" id="form-userProfile">
 			<div class="modal-header">
 				<h4 class="modal-title" id="editor-userProfile">Account Settings</h4>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<div class="mb-4">
-					<label for="userProfile-name" class="form-label">Name</label>
-					<input type="text" class="form-control" id="userProfile-name" name="userProfile-name" placeholder="Name" autocomplete="off" required>
-				</div>
-				<div class="mb-4">
-					<label for="userProfile-email" class="form-label">Email Address</label>
-					<input type="text" class="form-control" id="userProfile-email" name="userProfile-email" placeholder="Email">
-				</div>
-				<div class="mb-4">
-					<label for="userProfile-username" class="form-label">Username</label>
-					<div class="input-group">
-						<span class="input-group-text" id="userProfile-prefixUsername">@</span>
-  						<input type="text" class="form-control" id="userProfile-username"" name="userProfile-username" placeholder="Username" autocomplete="off" aria-label="Username" aria-describedby="userProfile-prefixUsername" required>
+				<div class="row">
+					<div class="col-lg-7 col-sm-12 mb-4">
+						<label for="userProfile-name" class="form-label">Name</label>
+						<input type="text" class="form-control" id="userProfile-name" name="userProfile-name" placeholder="Name" autocomplete="off" required>
 					</div>
-				</div><br/>
-				<p>Fill in the form below to change your password</p>
-				<hr class="mb-4"/>
-				<div class="mb-4">
-					<label for="userProfile-password" class="form-label">Old Password</label>
-					<input type="password" class="form-control" id="userProfile-oldPassword" name="userProfile-oldPassword" autocomplete="new-password" placeholder="Old Password">
-				</div>
-				<div class="mb-4">
-					<label for="userProfile-newPassword" class="form-label">New Password</label>
-					<input type="password" class="form-control" id="userProfile-newPassword" name="userProfile-newPassword" autocomplete="new-password" placeholder="New Password">
-				</div>
-				<div class="mb-4">
-					<label for="userProfile-repeatNewPassword" class="form-label">Repeat New Password</label>
-					<input type="password" class="form-control" id="userProfile-repeatNewPassword" name="userProfile-repeatNewPassword" autocomplete="new-password" placeholder="Repeat New Password">
+					<div class="col-lg-5 col-sm-12 mb-4">
+						<label for="userProfile-username" class="form-label">Username</label>
+						<div class="input-group">
+							<span class="input-group-text" id="userProfile-prefixUsername">@</span>
+							<input type="text" class="form-control" id="userProfile-username"" name="userProfile-username" placeholder="Username" autocomplete="off" aria-label="Username" aria-describedby="userProfile-prefixUsername" required>
+						</div>
+					</div><br/>
+					<div class="col-12">
+						<div class="card">
+                            <div class="card-header fw-bold">Fill in the form below to change your password</div>
+						</div>
+					</div>
+					<div class="col-12 mb-4">
+						<label for="userProfile-password" class="form-label">Old Password</label>
+						<div class="input-group">
+							<input type="password" class="form-control" id="userProfile-oldPassword" name="userProfile-oldPassword" autocomplete="new-password" placeholder="Old Password">
+							<button type="button" class="btn btn-secondary inputPassword-toggleVisibility"><i class="ri-eye-off-line"></i></button>
+						</div>
+					</div>
+					<div class="col-lg-6 col-sm-12 mb-4">
+						<label for="userProfile-newPassword" class="form-label">New Password</label>
+						<div class="input-group">
+							<input type="password" class="form-control" id="userProfile-newPassword" name="userProfile-newPassword" autocomplete="new-password" placeholder="New Password">
+							<button type="button" class="btn btn-secondary inputPassword-toggleVisibility"><i class="ri-eye-off-line"></i></button>
+						</div>
+					</div>
+					<div class="col-lg-6 col-sm-12 mb-4">
+						<label for="userProfile-repeatNewPassword" class="form-label">Repeat New Password</label>
+						<div class="input-group">
+							<input type="password" class="form-control" id="userProfile-repeatNewPassword" name="userProfile-repeatNewPassword" autocomplete="new-password" placeholder="Repeat New Password">
+							<button type="button" class="btn btn-secondary inputPassword-toggleVisibility"><i class="ri-eye-off-line"></i></button>
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="modal-footer">
@@ -227,6 +237,7 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 			$("#modalWarning").modal("show");
 		}
 	}
+
 	clearAppData(false);
 </script>
 <script>

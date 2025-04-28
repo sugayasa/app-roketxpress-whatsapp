@@ -51,21 +51,21 @@
 								<label for="editorUserAdmin-currentPassword" class="form-label">Current Password</label>
 								<div class="input-group">
 									<input type="password" class="form-control" id="editorUserAdmin-currentPassword" name="editorUserAdmin-currentPassword" autocomplete="new-password" placeholder="Current Password">
-									<button type="button" class="btn btn-secondary editorUserAdmin-toggleVisibility"><i class="ri-eye-off-line"></i></button>
+									<button type="button" class="btn btn-secondary inputPassword-toggleVisibility"><i class="ri-eye-off-line"></i></button>
 								</div>
 							</div>
 							<div class="mb-3">
 								<label for="editorUserAdmin-password" class="form-label">New Password</label>
 								<div class="input-group">
 									<input type="password" class="form-control" id="editorUserAdmin-password" name="editorUserAdmin-password" autocomplete="new-password" placeholder="New Password">
-									<button type="button" class="btn btn-secondary editorUserAdmin-toggleVisibility"><i class="ri-eye-off-line"></i></button>
+									<button type="button" class="btn btn-secondary inputPassword-toggleVisibility"><i class="ri-eye-off-line"></i></button>
 								</div>
 							</div>
 							<div class="mb-3">
 								<label for="editorUserAdmin-repeatPassword" class="form-label">Repeat Password</label>
 								<div class="input-group">
 									<input type="password" class="form-control" id="editorUserAdmin-repeatPassword" name="editorUserAdmin-repeatPassword" autocomplete="new-password" placeholder="Repeat Password">
-									<button type="button" class="btn btn-secondary editorUserAdmin-toggleVisibility"><i class="ri-eye-off-line"></i></button>
+									<button type="button" class="btn btn-secondary inputPassword-toggleVisibility"><i class="ri-eye-off-line"></i></button>
 								</div>
 							</div>
 						</div>

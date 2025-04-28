@@ -221,17 +221,12 @@ class Chat extends ResourceController
                 default         :   return throwResponseInternalServerError('Failed to send message. Please try again later', $sendResult);
             }
         } else {
-            $idMessage          =   $sendResult['idMessage'];
-            $idUserAdmin        =   $this->userData->idUserAdmin;
-            $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
+            $idMessage  =   $sendResult['idMessage'];
+            $idUserAdmin=   $this->userData->idUserAdmin;
             $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $message, $idUserAdmin);
 
             return throwResponseOK('Message sent successfully', [
-                'idMessage'         =>  $idMessage,
-                'phoneNumber'       =>  $phoneNumber,
-                'message'           =>  $message,
-                'currentTimeStamp'  =>  $currentTimeStamp,
-                'dateTimeChat'      =>  Time::now('UTC')->setTimezone($userTimeZoneOffset)->toLocalizedString('H:mm')
+                'currentTimeStamp'  =>  $currentTimeStamp
             ]);
         }
     }

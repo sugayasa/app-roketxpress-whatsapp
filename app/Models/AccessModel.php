@@ -15,7 +15,7 @@ class AccessModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['IDUSERADMINLEVEL', 'NAME', 'EMAIL', 'USERNAME', 'PASSWORD', 'HARDWAREID', 'DATETIMELOGIN', 'DATETIMEACTIVITY', 'DATETIMEEXPIRED', 'STATUS'];
+    protected $allowedFields    = ['IDUSERADMINLEVEL', 'NAME', 'EMAIL', 'USERNAME', 'PASSWORD', 'HARDWAREID', 'REDIRECTTOKEN', 'DATETIMELOGIN', 'DATETIMEACTIVITY', 'DATETIMEEXPIRED', 'STATUS'];
 
     // Dates
     protected $useTimestamps = false;
@@ -54,7 +54,7 @@ class AccessModel extends Model
 
     public function getUserAdminDetail($idUserAdmin)
     {
-        $this->select('A.HARDWAREID, A.IDUSERADMINLEVEL, A.NAME, A.EMAIL, B.LEVELNAME');
+        $this->select('A.HARDWAREID, A.IDUSERADMINLEVEL, A.NAME, A.USERNAME, A.EMAIL, B.LEVELNAME');
         $this->from('m_useradmin AS A', true);
         $this->join('m_useradminlevel AS B', 'A.IDUSERADMINLEVEL = B.IDUSERADMINLEVEL', 'LEFT');
         $this->where('A.IDUSERADMIN', $idUserAdmin);

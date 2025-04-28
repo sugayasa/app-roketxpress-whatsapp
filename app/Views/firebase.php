@@ -63,6 +63,7 @@
 			const contactInitial = lastUpdateChat.contactInitial,
 				contactName = lastUpdateChat.contactName,
 				idChatList = lastUpdateChat.idChatList,
+				idUserAdmin = lastUpdateChat.idUserAdmin,
 				isNewMessage = lastUpdateChat.isNewMessage,
 				messageBodyTrim = lastUpdateChat.messageBodyTrim,
 				timestamp = lastUpdateChat.timestamp,
@@ -169,9 +170,10 @@
 
 			if(isNewMessage && lastNotifTimeStamp != timestamp){
 				if (document.visibilityState === 'visible') {
-					let chatListItemActiveId = $("#chat-idChatList").val();
+					let chatListItemActiveId = $("#chat-idChatList").val(),
+						idUserAdminMenuChat = localStorage.getItem('idUserAdminMenuChat');
 					if(chatListItemActiveId == idChatList) {
-						playStoredAudio("message_received_active");
+						if(idUserAdminMenuChat != idUserAdmin) playStoredAudio("message_received_active");
 					} else {
 						playStoredAudio("message_received_background");
 					}
