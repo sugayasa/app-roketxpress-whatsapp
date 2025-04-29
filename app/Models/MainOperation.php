@@ -219,9 +219,11 @@ class MainOperation extends Model
                 "ISTEMPLATE"        =>  $isTemplateMessage
             ];
 
-            $this->updateChatListAndRTDBStats($idChatList, true, $isUpdateTableChatList);
             $procInsertChatThread   =   $this->insertDataTable('t_chatthread', $arrInsertChatThread);
-            if($procInsertChatThread['status']) return $procInsertChatThread['insertID'];
+            if($procInsertChatThread['status']) {
+                $this->updateChatListAndRTDBStats($idChatList, true, $isUpdateTableChatList);
+                return $procInsertChatThread['insertID'];
+            }
         }
 
         return 0;
