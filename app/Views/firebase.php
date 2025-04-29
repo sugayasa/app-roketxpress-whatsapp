@@ -146,7 +146,8 @@
 									chatThread = generateRowChatThread(classRight, senderName.charAt(0), chatContentWrap, senderName);
 								$('#chat-conversation-ul').append(chatThread);
 							}
-
+							
+							activateChatContentOptionButton();
 							scrollToBottomSimpleBar('chat-conversation');
 						}
 

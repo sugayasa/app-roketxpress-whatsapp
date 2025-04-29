@@ -33,6 +33,7 @@ class Webhook extends ResourceController
         $mainOperation  =   new MainOperation();
         $cronModel      =   new CronModel();
         $firebaseRTDB   =   new FirebaseRTDB();
+        $dateTimeNow    =   date('Y-m-d H:i:s');
         $params         =   $this->request->getJSON();
         $messages       =   $params->messages ?? null;
         $acks           =   $params->ack ?? null;
@@ -64,10 +65,29 @@ class Webhook extends ResourceController
                             'PHONENUMBER'       =>  $phoneNumber,
                             'EMAILS'            =>  '',
                             'ISVALIDWHATSAPP'   =>  1,
-                            'DATETIMEINSERT'    =>  date('Y-m-d H:i:s')
+                            'DATETIMEINSERT'    =>  $dateTimeNow
                         ];
                         $procInsertContact   =   $mainOperation->insertDataTable('t_contact', $arrInsertContact);
                         if($procInsertContact['status']) $idContact = $procInsertContact['insertID'];
+                    }
+
+                    if(!is_null($quotedMsgId) && $quotedMsgId != ''){
+                        $detailChatThreadQuoted =   $cronModel->getDetailChatThreadQuoted($quotedMsgId);
+                        $isQuotedTemplate       =   $detailChatThreadQuoted['ISTEMPLATE'];
+
+                        if($isQuotedTemplate){
+                            $detailChatCron =   $cronModel->getDetailChatCron($quotedMsgId);
+                            $idReservationRC=   $detailChatCron['IDRESERVATIONRECONFIRMATION'];
+
+                            if($idReservationRC > 0){
+                                $statusReconfirmation       =   $messageBody == 'Confirm Reservation' ? 2 : 3;
+                                $arrUpdateReconfirmation    =   [
+                                    'DATETIMERESPONSE'  =>  $dateTimeNow,
+                                    'STATUS'            =>  $statusReconfirmation
+                                ];
+                                $mainOperation->updateDataTable(APP_MAIN_DATABASE_NAME.'.t_reservationreconfirmation', $arrUpdateReconfirmation, ['IDRESERVATIONRECONFIRMATION' => $idReservationRC]);
+                            }
+                        }
                     }
 
                     if(!is_null($idContact)) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 0);
@@ -97,7 +117,10 @@ class Webhook extends ResourceController
                                                 'STATUS'        =>  1
                                             ];
                                             break;
-                        case 'read'     :    $arrUpdateReconfirmation    =   ['DATETIMEREAD'  =>  $dateTimeNow];
+                        case 'read'     :    $arrUpdateReconfirmation    =   [
+                                                'DATETIMEREAD'  =>  $dateTimeNow,
+                                                'STATUSREAD'    =>  1
+                                            ];
                                             break;
                         case 'delivered':   
                         default         :   break;

@@ -210,6 +210,18 @@ if (!function_exists('issetAndNotNull')) {
     }
 }
 
+if (!function_exists('replaceNewLine')) {
+    /**
+     * Remove all new line
+     *
+     * @param string $stringOrigin
+     * @return string
+     */
+    function replaceNewLine($stringOrigin){
+        return preg_replace('/\s+/', ' ', $stringOrigin);
+    }
+}
+
 if (!function_exists('getInitialsName')) {
     /**
      * Get initials from a name

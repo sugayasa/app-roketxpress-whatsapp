@@ -123,49 +123,49 @@ class Cron extends BaseController
             foreach($parametersTemplate as $keyParameter => $textParameter){
                 switch($keyParameter){
                     case 'SOURCENAME':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->SOURCENAME, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->SOURCENAME), '-');
                         break;
                     case 'BOOKINGCODE':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->BOOKINGCODE, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->BOOKINGCODE), '-');
                         break;
                     case 'CUSTOMERNAME':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->CUSTOMERNAME, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->CUSTOMERNAME), '-');
                         break;
                     case 'RESERVATIONTITLE':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->RESERVATIONTITLE, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->RESERVATIONTITLE), '-');
                         break;
                     case 'RESERVATIONDATE':
-                        $durationDay            =   issetAndNotNull($detailReservation->SOURCENAME, '-');
-                        $reservationDateStart   =   issetAndNotNull($detailReservation->RESERVATIONDATESTART, '-');
-                        $reservationDateEnd     =   issetAndNotNull($detailReservation->RESERVATIONDATEEND, '-');
+                        $durationDay            =   issetAndNotNull(replaceNewLine($detailReservation->SOURCENAME), '-');
+                        $reservationDateStart   =   issetAndNotNull(replaceNewLine($detailReservation->RESERVATIONDATESTART), '-');
+                        $reservationDateEnd     =   issetAndNotNull(replaceNewLine($detailReservation->RESERVATIONDATEEND), '-');
                         $reservationDateStr     =   $reservationDateStart;
                         if($durationDay > 1) $reservationDateStart." - ".$reservationDateEnd;
                         $arrParameters[]        =   $reservationDateStr;
                         break;
                     case 'RESERVATIONDATESTART':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->RESERVATIONDATESTART, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->RESERVATIONDATESTART), '-');
                         break;
                     case 'RESERVATIONDATEEND':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->RESERVATIONDATEEND, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->RESERVATIONDATEEND), '-');
                         break;
                     case 'PICKUPTIME':
                     case 'RESERVATIONTIMESTART':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->RESERVATIONTIMESTART, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->RESERVATIONTIMESTART), '-');
                         break;
                     case 'RESERVATIONTIMEEND':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->RESERVATIONTIMEEND, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->RESERVATIONTIMEEND), '-');
                         break;
                     case 'DURATIONOFDAY':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->DURATIONOFDAY, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->DURATIONOFDAY), '-');
                         break;
                     case 'NUMBEROFADULT':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->NUMBEROFADULT, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->NUMBEROFADULT), '-');
                         break;
                     case 'NUMBEROFCHILD':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->NUMBEROFCHILD, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->NUMBEROFCHILD), '-');
                         break;
                     case 'NUMBEROFINFANT':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->NUMBEROFINFANT, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->NUMBEROFINFANT), '-');
                         break;
                     case 'DETAILPAX':
                         $paxDetail      =   '';
@@ -175,13 +175,13 @@ class Cron extends BaseController
                         $arrParameters[]=   $paxDetail == '' ? '-' : $paxDetail;
                         break;
                     case 'PICKUPLOCATION':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->PICKUPLOCATION, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->PICKUPLOCATION), '-');
                         break;
                     case 'REMARK':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->REMARK, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->REMARK), '-');
                         break;
                     case 'TOURPLAN':
-                        $arrParameters[]    =   issetAndNotNull($detailReservation->TOURPLAN, '-');
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->TOURPLAN), '-');
                         break;
                     default:
                         $arrParameters[]    =   '-';

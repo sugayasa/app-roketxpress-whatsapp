@@ -90,4 +90,18 @@ class CronModel extends Model
         ];
         return $result;
     }
+
+    public function getDetailChatThreadQuoted($idMessage){
+        $this->select("IDCHATTHREAD, ISTEMPLATE");
+        $this->from('t_chatthread', true);
+        $this->where("IDMESSAGE", $idMessage);
+
+        $result =   $this->get()->getRowArray();
+
+        if(is_null($result)) return [
+            'IDCHATTHREAD'  =>  0,
+            'ISTEMPLATE'    =>  0
+        ];
+        return $result;
+    }
 }
