@@ -30,62 +30,84 @@ class Cron extends BaseController
         $oneMsgIO           =   new OneMsgIO();
         $currentDateTime    =   date('Y-m-d H:i:s');
         $currentTimeStamp   =   Time::now('UTC')->getTimestamp();
-        
-        $dataChatCron       =   $cronModel->getDataChatCron();
+        $hourNow            =   date('H');
 
-        if($dataChatCron){
-            foreach($dataChatCron as $keyChatCron){
-                $idChatCron             =   $keyChatCron->IDCHATCRON;
-                $idContact              =   $keyChatCron->IDCONTACT;
-                $idReservation          =   $keyChatCron->IDRESERVATION;
-                $idChatTemplate         =   $keyChatCron->IDCHATTEMPLATE;
-                $phoneNumber            =   $keyChatCron->PHONENUMBER;
-                $templateCode           =   $keyChatCron->TEMPLATECODE;
-                $templateLanguageCode   =   $keyChatCron->TEMPLATELANGUAGECODE;
-                $parametersHeader       =   $keyChatCron->PARAMETERSHEADER;
-                $parametersHeader       =   !is_null($parametersHeader) && $parametersHeader != '' ? json_decode($parametersHeader) : [];
-                $parametersBody         =   $keyChatCron->PARAMETERSBODY;
-                $parametersBody         =   !is_null($parametersBody) && $parametersBody != '' ? json_decode($parametersBody) : [];
-                $detailReservation      =   $cronModel->getDetailReservation($idReservation);
+        if($hourNow > 7 && $hourNow < 22){
+            $dataChatCron       =   $cronModel->getDataChatCron();
+            if($dataChatCron){
+                foreach($dataChatCron as $keyChatCron){
+                    $idChatCron                 =   $keyChatCron->IDCHATCRON;
+                    $idContact                  =   $keyChatCron->IDCONTACT;
+                    $idReservation              =   $keyChatCron->IDRESERVATION;
+                    $idReservationReconfirmation=   $keyChatCron->IDRESERVATIONRECONFIRMATION;
+                    $idChatTemplate             =   $keyChatCron->IDCHATTEMPLATE;
+                    $phoneNumber                =   $keyChatCron->PHONENUMBER;
+                    $templateCode               =   $keyChatCron->TEMPLATECODE;
+                    $templateLanguageCode       =   $keyChatCron->TEMPLATELANGUAGECODE;
+                    $parametersHeader           =   $keyChatCron->PARAMETERSHEADER;
+                    $parametersHeader           =   !is_null($parametersHeader) && $parametersHeader != '' ? json_decode($parametersHeader) : [];
+                    $parametersBody             =   $keyChatCron->PARAMETERSBODY;
+                    $parametersBody             =   !is_null($parametersBody) && $parametersBody != '' ? json_decode($parametersBody) : [];
+                    $detailReservation          =   $cronModel->getDetailReservation($idReservation);
 
-                if($detailReservation){
-                    $arrParametersTemplate      =   [];
-                    $arrParametersTemplateHeader=   $this->generateParametersTemplate('header', $parametersHeader, $detailReservation);
-                    $arrParametersTemplateBody  =   $this->generateParametersTemplate('body', $parametersBody, $detailReservation);
-                    if (!is_null($arrParametersTemplateHeader)) array_push($arrParametersTemplate, $arrParametersTemplateHeader);
-                    if (!is_null($arrParametersTemplateBody)) array_push($arrParametersTemplate, $arrParametersTemplateBody);
+                    if($detailReservation){
+                        $arrParametersTemplate      =   [];
+                        $arrParametersTemplateHeader=   $this->generateParametersTemplate('header', $parametersHeader, $detailReservation);
+                        $arrParametersTemplateBody  =   $this->generateParametersTemplate('body', $parametersBody, $detailReservation);
+                        $arrUpdateReconfirmation    =   ['STATUS'    =>  -1];
 
-                    $sendResult                 =   $oneMsgIO->sendMessageTemplate($templateCode, $templateLanguageCode, $phoneNumber, $arrParametersTemplate);
+                        if (!is_null($arrParametersTemplateHeader)) array_push($arrParametersTemplate, $arrParametersTemplateHeader);
+                        if (!is_null($arrParametersTemplateBody)) array_push($arrParametersTemplate, $arrParametersTemplateBody);
+                        $sendResult             =   $oneMsgIO->sendMessageTemplate($templateCode, $templateLanguageCode, $phoneNumber, $arrParametersTemplate);
 
-                    if(!$sendResult['isSent']){
-                        $errorCode          =   $sendResult['errorCode'];
-                        $errorMsg           =   $sendResult['errorMsg'];
-                        $parametersTemplate =   [
-                            "header"    =>  $this->generateParametersTemplate('header', $parametersHeader, $detailReservation, true),
-                            "body"      =>  $this->generateParametersTemplate('body', $parametersBody, $detailReservation, true)
-                        ];
-                        $mainOperation->insertLogFailedMessage($idChatTemplate, $idContact, $phoneNumber, json_encode($parametersTemplate), $errorCode, $errorMsg);
-                        $arrUpdateCron  =   [
-                            "STATUS"        =>  -1,
-                            "DATETIMESENT"  =>  $currentDateTime
-                        ];
+                        if(!$sendResult['isSent']){
+                            $errorCode          =   $sendResult['errorCode'];
+                            $errorMsg           =   $sendResult['errorMsg'];
 
-                        $mainOperation->updateDataTable('t_chatcron', $arrUpdateCron, ['IDCHATCRON' => $idChatCron]);
-                    } else {
-                        $arrUpdateCron  =   [
-                            "STATUS"        =>  1,
-                            "DATETIMESENT"  =>  $currentDateTime
-                        ];
+                            switch($errorCode){
+                                case 'E0001'    :   $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => -1], ['IDCONTACT' => $idContact]); break;
+                                default         :   break;
+                            }
 
-                        $mainOperation->updateDataTable('t_chatcron', $arrUpdateCron, ['IDCHATCRON' => $idChatCron]);
-                        $idMessage                  =   $sendResult['idMessage'];
-                        $listOfTemplate             =   $oneMsgIO->getListOfTemplates();
-                        $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateCode, $listOfTemplate, $arrParametersTemplate);
+                            $parametersTemplate =   [
+                                "header"    =>  $this->generateParametersTemplate('header', $parametersHeader, $detailReservation, true),
+                                "body"      =>  $this->generateParametersTemplate('body', $parametersBody, $detailReservation, true)
+                            ];
+                            $mainOperation->insertLogFailedMessage($idChatTemplate, $idContact, $phoneNumber, json_encode($parametersTemplate), $errorCode, $errorMsg);
 
-                        if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated);
-                    }                
+                            $arrUpdateCron  =   [
+                                "STATUS"        =>  -1,
+                                "DATETIMESENT"  =>  $currentDateTime
+                            ];
+                            $mainOperation->updateDataTable('t_chatcron', $arrUpdateCron, ['IDCHATCRON' => $idChatCron]);
+                        } else {
+                            $idMessage                  =   $sendResult['idMessage'];
+                            $listOfTemplate             =   $oneMsgIO->getListOfTemplates();
+                            $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateCode, $listOfTemplate, $arrParametersTemplate);
+
+                            if($messageTemplateGenerated) {
+                                $idChatThread   =   $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated);
+                            
+                                $arrUpdateCron  =   [
+                                    "IDCHATTHREAD"  =>  $idChatThread,
+                                    "STATUS"        =>  1,
+                                    "DATETIMESENT"  =>  $currentDateTime
+                                ];
+                                $mainOperation->updateDataTable('t_chatcron', $arrUpdateCron, ['IDCHATCRON' => $idChatCron]);
+                            }
+
+                            $arrUpdateReconfirmation    =   [
+                                'DATETIMESENT'  =>  $currentDateTime,
+                                'STATUS'        =>  1
+                            ];
+                        }
+                        
+                        if($idReservationReconfirmation != 0) $mainOperation->updateDataTable(APP_MAIN_DATABASE_NAME.'.t_reservationreconfirmation', $arrUpdateReconfirmation, ['IDRESERVATIONRECONFIRMATION' => $idReservationReconfirmation]);
+                    }
                 }
             }
+        } else {
+            echo "Inactive period\n";
         }
 
         echo date('Y-m-d H:i:s')." - Done";

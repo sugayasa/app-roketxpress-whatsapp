@@ -5,6 +5,7 @@ namespace App\Controllers;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
 use App\Libraries\FirebaseRTDB;
+use App\Models\CronModel;
 use App\Models\MainOperation;
 use CodeIgniter\I18n\Time;
 
@@ -30,6 +31,7 @@ class Webhook extends ResourceController
     public function whatsappOneMsgIO()
     {
         $mainOperation  =   new MainOperation();
+        $cronModel      =   new CronModel();
         $firebaseRTDB   =   new FirebaseRTDB();
         $params         =   $this->request->getJSON();
         $messages       =   $params->messages ?? null;
@@ -76,12 +78,31 @@ class Webhook extends ResourceController
                 $idMessage      =   $ack->id ?? null;
                 $ackStatus      =   $ack->status ?? null;
                 $fieldDateTime  =   "DATETIMESENT";
+                $detailChatCron =   $cronModel->getDetailChatCron($idMessage);
+                $idReservationRC=   $detailChatCron['IDRESERVATIONRECONFIRMATION'];
+                $dateTimeNow    =   Time::now()->toDateTimeString();
 
                 switch ($ackStatus) {
                     case 'sent'     :   $fieldDateTime    =   'DATETIMESENT'; break;
                     case 'delivered':   $fieldDateTime    =   'DATETIMEDELIVERED'; break;
                     case 'read'     :   $fieldDateTime    =   'DATETIMEREAD'; break;
                     default         :   $fieldDateTime    =   'DATETIMESENT'; break;
+                }
+
+                if($idReservationRC != 0){
+                    $arrUpdateReconfirmation    =   false;
+                    switch ($ackStatus) {
+                        case 'sent'     :   $arrUpdateReconfirmation    =   [
+                                                'DATETIMESENT'  =>  $dateTimeNow,
+                                                'STATUS'        =>  1
+                                            ];
+                                            break;
+                        case 'read'     :    $arrUpdateReconfirmation    =   ['DATETIMEREAD'  =>  $dateTimeNow];
+                                            break;
+                        case 'delivered':   
+                        default         :   break;
+                    }
+                    if($arrUpdateReconfirmation != false) $mainOperation->updateDataTable(APP_MAIN_DATABASE_NAME.'.t_reservationreconfirmation', $arrUpdateReconfirmation, ['IDRESERVATIONRECONFIRMATION' => $idReservationRC]);
                 }
 
                 $arrUpdateChatthread    =   [$fieldDateTime  =>  $this->epochDatetime];

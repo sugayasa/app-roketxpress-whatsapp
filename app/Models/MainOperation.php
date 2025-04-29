@@ -182,7 +182,7 @@ class MainOperation extends Model
         return $result;
     }
 
-    public function insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageGenerated, $idUserAdmin = 1) : void
+    public function insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageGenerated, $idUserAdmin = 1) : int
     {
         $idChatList             =   $this->getIdChatList($idContact);
         $messageHeader          =   isset($messageGenerated['header']) ? $messageGenerated['header'] : '';
@@ -219,9 +219,12 @@ class MainOperation extends Model
                 "ISTEMPLATE"        =>  $isTemplateMessage
             ];
 
-            $this->insertDataTable('t_chatthread', $arrInsertChatThread);
             $this->updateChatListAndRTDBStats($idChatList, true, $isUpdateTableChatList);
+            $procInsertChatThread   =   $this->insertDataTable('t_chatthread', $arrInsertChatThread);
+            if($procInsertChatThread['status']) return $procInsertChatThread['insertID'];
         }
+
+        return 0;
     }
 
     public function getIdChatList($idContact)

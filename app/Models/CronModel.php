@@ -41,7 +41,8 @@ class CronModel extends Model
 
     public function getDataChatCron($dataLimit = 10)
     {	
-        $this->select("A.IDCHATCRON, A.IDRESERVATION, A.IDCHATTEMPLATE, B.IDCONTACT, C.PHONENUMBER, D.TEMPLATECODE, D.TEMPLATELANGUAGECODE, D.PARAMETERSHEADER, D.PARAMETERSBODY");
+        $this->select("A.IDCHATCRON, A.IDRESERVATION, A.IDRESERVATIONRECONFIRMATION, A.IDCHATTEMPLATE, B.IDCONTACT, C.PHONENUMBER,
+                    D.TEMPLATECODE, D.TEMPLATELANGUAGECODE, D.PARAMETERSHEADER, D.PARAMETERSBODY");
         $this->from('t_chatcron A', true);
         $this->join(APP_MAIN_DATABASE_NAME.'.t_reservation AS B', 'A.IDRESERVATION = B.IDRESERVATION', 'LEFT');
         $this->join('t_contact AS C', 'B.IDCONTACT = C.IDCONTACT', 'LEFT');
@@ -71,6 +72,22 @@ class CronModel extends Model
         $result =   $this->get()->getRowObject();
 
         if(is_null($result)) return false;
+        return $result;
+    }
+
+    public function getDetailChatCron($idMessage) {
+        $this->select("A.IDRESERVATION, A.IDRESERVATIONRECONFIRMATION, A.IDCHATTHREAD");
+        $this->from('t_chatcron A', true);
+        $this->join('t_chatthread AS B', 'A.IDCHATTHREAD = B.IDCHATTHREAD', 'LEFT');
+        $this->where("B.IDMESSAGE", $idMessage);
+
+        $result =   $this->get()->getRowArray();
+
+        if(is_null($result)) return [
+            'IDRESERVATION'                 =>  0,
+            'IDRESERVATIONRECONFIRMATION'   =>  0,
+            'IDCHATTHREAD'                  =>  0
+        ];
         return $result;
     }
 }
