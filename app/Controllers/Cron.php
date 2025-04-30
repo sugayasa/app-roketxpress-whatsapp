@@ -177,8 +177,14 @@ class Cron extends BaseController
                     case 'PICKUPLOCATION':
                         $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->PICKUPLOCATION), '-');
                         break;
+                    case 'HOTELNAME':
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->HOTELNAME), '-');
+                        break;
                     case 'REMARK':
                         $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->REMARK), '-');
+                        break;
+                    case 'SPECIALREQUEST':
+                        $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->SPECIALREQUEST), '-');
                         break;
                     case 'TOURPLAN':
                         $arrParameters[]    =   issetAndNotNull(replaceNewLine($detailReservation->TOURPLAN), '-');
