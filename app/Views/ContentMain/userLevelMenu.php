@@ -10,7 +10,7 @@
                     <button type="button" class="btn btn-primary btn-sm ms-auto" id="userLevelMenu-btnAddNewLevel" data-bs-toggle="modal" data-bs-target="#modal-addNewUserLevel"><i class="ri-add-line"></i> New Level</button>
 				</div>
                 <div class="card-body p-4">
-                    <div class="row">
+                    <div class="row" id="userLevelDetails-containerNameDescriptionForm">
                         <div class="col-lg-4 col-sm-12 mb-3">
                             <label for="levelName" class="form-label">Level Name</label>
                             <input type="text" class="form-control" id="userlevelDetails-levelName" name="userlevelDetails-levelName" placeholder="Level name">
@@ -19,6 +19,8 @@
                             <label for="description" class="form-label">Description</label>
                             <input type="text" class="form-control" id="userlevelDetails-description" name="userlevelDetails-description" placeholder="Description">
                         </div>
+                    </div>
+                    <div class="row">
                         <hr/>
                         <div class="col-12 mb-1" id="userLevelDetails-containerTableMenuList">
                             <table id="userLevelDetails-tableMenuList" class="table table-bordered table-hover table-sm mb-0">

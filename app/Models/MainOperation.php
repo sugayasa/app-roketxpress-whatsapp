@@ -244,10 +244,10 @@ class MainOperation extends Model
 
     public function getDetailChatListByPhoneNumber($phoneNumber)
     {	
-        $this->select("A.IDCHATLIST, A.IDCONTACT");
-        $this->from('t_chatlist A', true);
-        $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
-        $this->where('B.PHONENUMBER', $phoneNumber);
+        $this->select("B.IDCHATLIST, A.IDCONTACT");
+        $this->from('t_contact A', true);
+        $this->join('t_chatlist AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
+        $this->where('A.PHONENUMBER', $phoneNumber);
         $this->limit(1);
 
         $row    =   $this->get()->getRowArray();

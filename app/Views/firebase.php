@@ -107,6 +107,7 @@
 																<div class="avatar-xs">\
 																	<span class="avatar-title rounded-circle bg-primary-subtle text-primary">'+contactInitial+'</span>\
 																</div>\
+                                                				<span class="user-status"></span>\
 															</div>\
 															<div class="flex-grow-1 overflow-hidden">\
 																<h5 class="text-truncate font-size-15 mb-1">'+contactName+'</h5>\
@@ -117,6 +118,8 @@
 													</a>\
 												</li>';
 						$("#list-chatListData").prepend(chatListItemHtml);
+						activateOnClickChatListItem();
+						counterTimeChatList();
 					}
 				}
 				counterTimeChatList();

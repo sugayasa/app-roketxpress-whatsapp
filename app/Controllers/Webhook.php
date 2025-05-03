@@ -56,7 +56,7 @@ class Webhook extends ResourceController
                     $detailChatList =   $mainOperation->getDetailChatListByPhoneNumber($phoneNumber);
                     $idContact      =   $detailChatList['IDCONTACT'] ?? null;
 
-                    if(!$detailChatList){
+                    if(!$detailChatList || is_null($idContact)){
                         $idCountry          =   $mainOperation->getCountryCodeByPhoneNumber($phoneNumber);
                         $arrInsertContact   =   [
                             'IDCOUNTRY'         =>  $idCountry,
