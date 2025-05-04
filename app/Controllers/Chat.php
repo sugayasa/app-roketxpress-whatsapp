@@ -41,10 +41,11 @@ class Chat extends ResourceController
         $chatModel          =   new ChatModel();
         $page               =   $this->request->getVar('page');
         $searchKeyword      =   $this->request->getVar('searchKeyword');
+        $chatType           =   $this->request->getVar('chatType');
         $idContact          =   $this->request->getVar('idContact');
         $idContact          =   isset($idContact) && !is_null($idContact) && $idContact != '' ? hashidDecode($idContact) : null;
         $dataPerPage        =   50;
-        $dataChatList       =   $chatModel->getDataChatList($page, $dataPerPage, $searchKeyword, $idContact);
+        $dataChatList       =   $chatModel->getDataChatList($page, $dataPerPage, $searchKeyword, $chatType, $idContact);
         $totalData          =   0;
 
         if($dataChatList && count($dataChatList) > 0) {
@@ -61,14 +62,16 @@ class Chat extends ResourceController
                 $keyChatList->LASTMESSAGE           =   $lastMessage;
                 $totalData++;
             }
-        }
 
-        $loadMoreData   =   $totalData == $dataPerPage ? true : false;
-        return $this->setResponseFormat('json')
-                    ->respond([
-                        "dataChatList"  =>  $dataChatList,
-                        "loadMoreData"  =>  $loadMoreData
-                     ]);
+            $loadMoreData   =   $totalData == $dataPerPage ? true : false;
+            return $this->setResponseFormat('json')
+                        ->respond([
+                            "dataChatList"  =>  $dataChatList,
+                            "loadMoreData"  =>  $loadMoreData
+                        ]);
+        } else {
+            return throwResponseNotFound('No conversation found');
+        }
     }
     
     public function getDetailChat()

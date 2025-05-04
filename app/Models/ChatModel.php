@@ -39,7 +39,7 @@ class ChatModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    public function getDataChatList($page, $dataPerPage = 25, $searchKeyword, $idContact = null)
+    public function getDataChatList($page, $dataPerPage = 25, $searchKeyword, $chatType, $idContact = null)
     {	
         $pageOffset     =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, A.TOTALUNREADMESSAGE, A.LASTMESSAGE, A.DATETIMELASTMESSAGE,
@@ -54,6 +54,12 @@ class ChatModel extends Model
             ->orLike('A.LASTMESSAGE', $searchKeyword, 'both');
             $this->groupEnd();
         }
+
+        switch($chatType) {
+            case 2  : $this->where('A.TOTALUNREADMESSAGE > ', 0); break;
+            default : break;
+        }
+
         if(isset($idContact) && !is_null($idContact) && $idContact != '') {
             $this->where('A.IDCONTACT = ', $idContact);
         }

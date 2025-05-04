@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use CodeIgniter\API\ResponseTrait;
 use App\Controllers\BaseController;
+use App\Models\MainOperation;
 use App\Models\AccessModel;
 
 class Index extends BaseController
@@ -105,14 +106,20 @@ class Index extends BaseController
         if($listMenuDB == "" || !is_array($listMenuDB) || empty($listMenuDB)){
 			return "";
 		} else {			
+            $mainOperation  =   new MainOperation();
 			$menuElement	=	"";
+            $totalUnreadChat=	$mainOperation->getTotalUnreadChat();
+            $totalUnreadChat=	$totalUnreadChat > 99 ? '99+' : $totalUnreadChat;
 				
 			foreach($listMenuDB as $indexMenu => $keyMenu){
-                $active			=	$lastPageAlias != '' && $lastPageAlias == $keyMenu->MENUALIAS ? "active" : "";
+                $menuAlias      =   $keyMenu->MENUALIAS;
+                $active			=	$lastPageAlias != '' && $lastPageAlias == $menuAlias ? "active" : "";
                 $active			=	$active	== '' && $indexMenu == 0 ? 'active' : '';
-                $menuElement    .=  '<li id="menu'.$keyMenu->MENUALIAS.'" class="menu-item nav-item" data-bs-toggle="tooltip" data-bs-placement="top" title="'.$keyMenu->MENUNAME.'"  data-alias="'.$keyMenu->MENUALIAS.'" data-url="'.$keyMenu->URL.'">
-                                        <a class="nav-link '.$active.'" id="pills-user-tab" data-bs-toggle="pill" href="#pills-'.$keyMenu->URL.'" role="tab">
+                $counterUnread  =   $menuAlias == 'CHT' ? '<span id="chatUnreadCounter" class="badge bg-primary rounded-pill font-size-12 position-absolute mt-0 ms-1 translate-middle">'.$totalUnreadChat.'</span>' : '';
+                $menuElement    .=  '<li id="menu'.$menuAlias.'" class="menu-item nav-item" data-bs-toggle="tooltip" data-bs-placement="top" title="'.$keyMenu->MENUNAME.'"  data-alias="'.$menuAlias.'" data-url="'.$keyMenu->URL.'">
+                                        <a class="nav-link '.$active.'" data-bs-toggle="pill" href="#pills-'.$keyMenu->URL.'" role="tab">
                                             <i class="'.$keyMenu->ICON.'"></i>
+                                            '.$counterUnread.'
                                         </a>
                                     </li>';
 			}

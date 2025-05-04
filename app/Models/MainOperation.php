@@ -345,7 +345,10 @@ class MainOperation extends Model
             ];
 
             $firebaseRTDB->updateRealtimeDatabaseValue('lastUpdateChat', $arrUpdateReferenceRTDB);
-        }        
+    
+            $unreadChatNumber   =   $this->getTotalUnreadChat();
+            $firebaseRTDB->updateRealtimeDatabaseValue('unreadChatNumber', $unreadChatNumber);
+        }
     }
 
     private function getDetailChatListStats($idChatList) : array
@@ -372,33 +375,18 @@ class MainOperation extends Model
         return $row;
     }
 
-    public function getCountryCodeByPhoneNumber($phoneNumber) : int
+    public function getTotalUnreadChat() : int
     {
-        $arrDataCountryCode =	$this->getDataCountryCode();
-		$phoneNumber	    =	preg_replace('/[^0-9]/', '', $phoneNumber);
-		$whileProcess	    =	true;
-		$idCountryReturn    =	0;
-		
-        foreach($arrDataCountryCode as $keyDataCountryCode){
-            $idCountry		=	$keyDataCountryCode->IDCOUNTRY;
-            $countryCode	=	$keyDataCountryCode->COUNTRYPHONECODE;
-            $countryCodeLen	=	strlen($countryCode);
-            
-            if(substr($phoneNumber, 0, $countryCodeLen) == $countryCode){
-                if($whileProcess == true){
-                    $idCountryReturn=	$idCountry;
-                    $whileProcess	=	false;
-                    break;
-                }
-            }
-            
-            if(!$whileProcess) break;
-        }
-		
-		return $idCountryReturn;
+        $this->select("COUNT(IDCHATLIST) AS TOTALUNREADCHAT");
+        $this->from('t_chatlist', true);
+        $this->where('TOTALUNREADMESSAGE > ', 0);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return 0;
+		return $row['TOTALUNREADCHAT'];
 	}
 
-    function getDataCountryCode() : array
+    public function getDataCountryCode() : array
     {
         $this->select("IDCOUNTRY, COUNTRYPHONECODE");
         $this->from('m_country', true);

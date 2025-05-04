@@ -13,11 +13,12 @@
 		measurementId: '<?=FIREBASE_PUBLIC_MEASUREMENT_ID?>'
 	};
 
-	const app			=	initializeApp(firebaseConfig),
-		  database		= 	getDatabase(app),
-		  rtdb_appPath	=	'<?=FIREBASE_RTDB_MAINREF_NAME?>/',
-		  currentACK	=	ref(database, rtdb_appPath + 'currentACK'),
-		  lastUpdateChat=	ref(database, rtdb_appPath + 'lastUpdateChat');
+	const app				=	initializeApp(firebaseConfig),
+		  database			= 	getDatabase(app),
+		  rtdb_appPath		=	'<?=FIREBASE_RTDB_MAINREF_NAME?>/',
+		  currentACK		=	ref(database, rtdb_appPath + 'currentACK'),
+		  lastUpdateChat	=	ref(database, rtdb_appPath + 'lastUpdateChat'),
+		  unreadChatNumber	=	ref(database, rtdb_appPath + 'unreadChatNumber');
 
 	onValue(currentACK, (snapshot) => {
 		const lastAlias = localStorage.getItem('lastAlias'),
@@ -187,6 +188,22 @@
 				}
 				localStorage.setItem('lastNotifTimeStamp', timestamp);
 			}
+		}
+	});
+
+	onValue(unreadChatNumber, (snapshot) => {
+		const elemChatUnreadCounter = $("#chatUnreadCounter");
+		let chatUnreadNumber = snapshot.val();
+
+		if(chatUnreadNumber > 0){
+			chatUnreadNumber = chatUnreadNumber > 99 ? '99+' : chatUnreadNumber;
+			if(elemChatUnreadCounter.length > 0){
+				elemChatUnreadCounter.html(chatUnreadNumber);
+			} else {
+				$("#menuCHT a.nav-link").append('<span id="chatUnreadCounter" class="badge bg-primary rounded-pill font-size-12 position-absolute mt-0 ms-1 translate-middle">'+chatUnreadNumber+'</span>');
+			}
+		} else {
+			$("#chatUnreadCounter").remove();
 		}
 	});
 </script>
