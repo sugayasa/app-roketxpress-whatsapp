@@ -206,7 +206,6 @@ class MainOperation extends Model
 
         if($idChatList){
             $statusRead             =   $idUserAdmin == 0 ? 0 : 1;
-            $isUpdateTableChatList  =   $idUserAdmin == 0 ? true : false;
             $arrInsertChatThread    =   [
                 "IDCHATLIST"        =>  $idChatList,
                 "IDUSERADMIN"       =>  $idUserAdmin,
@@ -221,7 +220,7 @@ class MainOperation extends Model
 
             $procInsertChatThread   =   $this->insertDataTable('t_chatthread', $arrInsertChatThread);
             if($procInsertChatThread['status']) {
-                $this->updateChatListAndRTDBStats($idChatList, true, $isUpdateTableChatList);
+                $this->updateChatListAndRTDBStats($idChatList, true);
                 return $procInsertChatThread['insertID'];
             }
         }
@@ -287,7 +286,7 @@ class MainOperation extends Model
         $this->insertDataTable('log_failedmessage', $arrInsertLogFailedMessage);
     }
 
-    public function updateChatListAndRTDBStats($idChatList, $isNewMessage = false, $isUpdateTableChatList = false) : void
+    public function updateChatListAndRTDBStats($idChatList, $isNewMessage = false) : void
     {
         $firebaseRTDB       =   new FirebaseRTDB();
         $detailChatListStats=   $this->getDetailChatListStats($idChatList);
@@ -299,19 +298,18 @@ class MainOperation extends Model
             $dateTimeLastReply      =   $detailChatListStats['DATETIMELASTREPLY'];
             $contactName            =   $detailChatListStats['NAMEFULL'];
             $contactInitial         =   $contactName[0];
+            $senderFirstName        =   $detailChatListStats['SENDERFIRSTNAME'];
             $senderName             =   $detailChatListStats['SENDERNAME'];
             $chatThreadPosition     =   $detailChatListStats['CHATTHREADPOSITION'];
             $idUserAdmin            =   $detailChatListStats['IDUSERADMIN'];
-
-            if($isUpdateTableChatList){
-                $arrUpdateChatList      =   [
-                    "TOTALUNREADMESSAGE"    =>  $totalUnreadMessage,
-                    "LASTMESSAGE"           =>  $lastMessage,
-                    "DATETIMELASTMESSAGE"   =>  $dateTimeLastMessage,
-                    "DATETIMELASTREPLY"     =>  $dateTimeLastReply
-                ];
-                $this->updateDataTable('t_chatlist', $arrUpdateChatList, ['IDCHATLIST' => $idChatList]);
-            }
+            $arrUpdateChatList      =   [
+                "LASTSENDERFIRSTNAME"   =>  $senderFirstName,
+                "TOTALUNREADMESSAGE"    =>  $totalUnreadMessage,
+                "LASTMESSAGE"           =>  $lastMessage,
+                "DATETIMELASTMESSAGE"   =>  $dateTimeLastMessage,
+                "DATETIMELASTREPLY"     =>  $dateTimeLastReply
+            ];
+            $this->updateDataTable('t_chatlist', $arrUpdateChatList, ['IDCHATLIST' => $idChatList]);
 
             $idChatListEncoded      =   hashidEncode($idChatList, true);
             $idUserAdminEncoded     =   hashidEncode($idUserAdmin, true);
@@ -329,6 +327,7 @@ class MainOperation extends Model
                 'totalUnreadMessage'=>  $totalUnreadMessage,
                 'messageDetail'     =>  [
                     'senderName'        =>  $senderName,
+                    'senderFirstName'   =>  $senderFirstName,
                     'chatThreadPosition'=>  $chatThreadPosition,
                     'arrayChatThread'   =>  [
                         'IDMESSAGE'         =>  $detailChatListStats['IDMESSAGE'],
@@ -355,8 +354,9 @@ class MainOperation extends Model
     {
         $this->select("SUM(IF(A.STATUSREAD = 0, 1, 0)) AS TOTALUNREADMESSAGE, AA.CHATCONTENTHEADER, AA.CHATCONTENTBODY AS LASTMESSAGE, AA. CHATCONTENTFOOTER,
                 MAX(A.DATETIMECHAT) AS DATETIMELASTMESSAGE, MAX(IF(A.IDUSERADMIN = 0, A.DATETIMECHAT, NULL)) AS DATETIMELASTREPLY, C.NAMEFULL,
-                IF(AA.IDUSERADMIN = 0, C.NAMEFULL, D.NAME) AS SENDERNAME, IF(AA.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, AA.IDMESSAGE, AA.IDCHATTHREAD,
-                AA.ISTEMPLATE, AA.IDUSERADMIN");
+                IF(AA.IDUSERADMIN = 0, C.NAMEFULL, D.NAME) AS SENDERNAME, IF(AA.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION,
+                IF(AA.IDUSERADMIN = 0, SUBSTRING_INDEX(C.NAMEFULL, ' ', 1), SUBSTRING_INDEX(D.NAME, ' ', 1)) AS SENDERFIRSTNAME,
+                AA.IDMESSAGE, AA.IDCHATTHREAD, AA.ISTEMPLATE, AA.IDUSERADMIN");
         $this->from('t_chatthread A', true);
         $this->join("(SELECT IDCHATLIST, IDMESSAGE, IDCHATTHREAD, IDUSERADMIN, CHATCONTENTHEADER, CHATCONTENTBODY, CHATCONTENTFOOTER, ISTEMPLATE
                       FROM t_chatthread 

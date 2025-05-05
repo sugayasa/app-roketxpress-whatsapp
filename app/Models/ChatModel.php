@@ -42,8 +42,8 @@ class ChatModel extends Model
     public function getDataChatList($page, $dataPerPage = 25, $searchKeyword, $chatType, $idContact = null)
     {	
         $pageOffset     =   ($page - 1) * $dataPerPage;
-        $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, A.TOTALUNREADMESSAGE, A.LASTMESSAGE, A.DATETIMELASTMESSAGE,
-                '' AS DATETIMELASTMESSAGESTR, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY");
+        $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, A.LASTSENDERFIRSTNAME, B.NAMEFULL, A.TOTALUNREADMESSAGE,
+                A.LASTMESSAGE, A.DATETIMELASTMESSAGE, '' AS DATETIMELASTMESSAGESTR, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
         if(isset($searchKeyword) && !is_null($searchKeyword) && $searchKeyword != '' && ($idContact == null || $idContact == '')) {
@@ -131,7 +131,7 @@ class ChatModel extends Model
         $this->where('A.RESERVATIONDATESTART >= ', $dateNow)
         ->orWhere('A.RESERVATIONDATEEND', $dateNow);
         $this->groupEnd();
-        $this->orderBy('A.RESERVATIONDATESTART DESC');
+        $this->orderBy('CASE WHEN A.RESERVATIONDATESTART = \''.$dateNow.'\' THEN 0 ELSE 1 END, A.RESERVATIONDATESTART ASC');
 
         $result =   $this->get()->getResultObject();
 

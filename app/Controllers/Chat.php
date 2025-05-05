@@ -136,7 +136,7 @@ class Chat extends ResourceController
                 unset($keyChatThread->ARRIDUSERADMINREAD);
             }
             $listChatThread =   encodeDatabaseObjectResultKey($listChatThread, 'IDCHATTHREAD', true);
-            $mainOperation->updateChatListAndRTDBStats($idChatList, false, true);
+            $mainOperation->updateChatListAndRTDBStats($idChatList, false);
         }
 
         $idContact                  =   $detailContact['IDCONTACT'];
@@ -257,7 +257,7 @@ class Chat extends ResourceController
             }
         }
 
-        $mainOperation->updateChatListAndRTDBStats($idChatList, false, true);
+        $mainOperation->updateChatListAndRTDBStats($idChatList, false);
         return throwResponseOK('Unread message count updated successfully');
     }
 }

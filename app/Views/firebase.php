@@ -71,6 +71,7 @@
 				dateTimeLastReply = lastUpdateChat.dateTimeLastReply,
 				totalUnreadMessage = lastUpdateChat.totalUnreadMessage,
 				messageDetail = lastUpdateChat.messageDetail,
+				senderFirstName = messageDetail.senderFirstName,
 				lastNotifTimeStamp = localStorage.getItem('lastNotifTimeStamp');
 
 			if (activeMenu == 'menuCHT') {
@@ -80,7 +81,7 @@
 
 				if(chatListItem.length > 0){
 					let chatListItemCounter = chatListItem.find('.unread-message');
-					chatListItem.find('.chat-user-message').text(messageBodyTrim);
+					chatListItem.find('.chat-user-message').text(senderFirstName+': '+messageBodyTrim);
 
 					if(totalUnreadMessage > 0){
 						if(chatListItemCounter.length > 0){
@@ -112,7 +113,7 @@
 															</div>\
 															<div class="flex-grow-1 overflow-hidden">\
 																<h5 class="text-truncate font-size-15 mb-1">'+contactName+'</h5>\
-																<p class="chat-user-message text-truncate mb-0">'+messageBodyTrim+'</p>\
+																<p class="chat-user-message text-truncate mb-0">'+senderFirstName+': '+messageBodyTrim+'</p>\
 															</div>\
 															<div class="chatList-item-time font-size-11">Just Now</div>\
 														</div>\
