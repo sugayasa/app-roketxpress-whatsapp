@@ -17,6 +17,7 @@
         <link rel="stylesheet" href="<?=BASE_URL_ASSETS_CSS?>simplebar.min.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="<?=BASE_URL_ASSETS_CSS?>nprogress.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="<?=BASE_URL_ASSETS_CSS?>sScrollBar.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="<?=BASE_URL_ASSETS_CSS?>daterangepicker.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="<?=BASE_URL_ASSETS_CSS?>custom.css" rel="stylesheet" type="text/css">
 	</head>
 	<body id="mainbody">
@@ -45,5 +46,6 @@
 	<script src="<?=BASE_URL_ASSETS_JS?>jquery.magnific-popup.min.js"></script>
 	<script src="<?=BASE_URL_ASSETS_JS?>owl.carousel.min.js"></script>
 	<script src="<?=BASE_URL_ASSETS_JS?>simpleScrollBar.js"></script>
+	<script src="<?=BASE_URL_ASSETS_JS?>daterangepicker.js"></script>
 	<script src="<?=BASE_URL_ASSETS_JS?>session-controller.js?<?=date('YmdHis')?>"></script>
 </html>

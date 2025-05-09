@@ -102,33 +102,16 @@ $domain			=	explode(".", $url);
 $subdomain		=	$domain[0];
 $productionURL	=	$subdomain == "wa" ? true : false;
 
-$arrHour   =	array(
-    array("ID"=>"00", "VALUE"=>"00"),
-    array("ID"=>"01", "VALUE"=>"01"),
-    array("ID"=>"02", "VALUE"=>"02"),
-    array("ID"=>"03", "VALUE"=>"03"),
-    array("ID"=>"04", "VALUE"=>"04"),
-    array("ID"=>"05", "VALUE"=>"05"),
-    array("ID"=>"06", "VALUE"=>"06"),
-    array("ID"=>"07", "VALUE"=>"07"),
-    array("ID"=>"08", "VALUE"=>"08"),
-    array("ID"=>"09", "VALUE"=>"09"),
-    array("ID"=>"10", "VALUE"=>"10"),
-    array("ID"=>"11", "VALUE"=>"11"),
-    array("ID"=>"12", "VALUE"=>"12"),
-    array("ID"=>"13", "VALUE"=>"13"),
-    array("ID"=>"14", "VALUE"=>"14"),
-    array("ID"=>"15", "VALUE"=>"15"),
-    array("ID"=>"16", "VALUE"=>"16"),
-    array("ID"=>"17", "VALUE"=>"17"),
-    array("ID"=>"18", "VALUE"=>"18"),
-    array("ID"=>"19", "VALUE"=>"19"),
-    array("ID"=>"20", "VALUE"=>"20"),
-    array("ID"=>"21", "VALUE"=>"21"),
-    array("ID"=>"22", "VALUE"=>"22"),
-    array("ID"=>"23", "VALUE"=>"23")
-);
-$strArrHour =   implode(',', array_column($arrHour, 'VALUE'));
+$arrHours   =   [];
+for($i=0; $i<24; $i++){
+    $arrHours[] =   array("ID"=>str_pad($i, 2, '0', STR_PAD_LEFT), "VALUE"=>str_pad($i, 2, '0', STR_PAD_LEFT));
+}
+$strArrHour =   implode(',', array_column($arrHours, 'VALUE'));
+
+$arrMinutes =   [];
+for($i=0; $i<60; $i++){
+    $arrMinutes[]   =   array("ID"=>str_pad($i, 2, '0', STR_PAD_LEFT), "VALUE"=>str_pad($i, 2, '0', STR_PAD_LEFT));
+}
 
 $arrMinuteInterval   =	array(
     array("ID"=>"00", "VALUE"=>"00"),
@@ -181,8 +164,9 @@ defined('BASE_URL_ASSETS_JS')                           || define('BASE_URL_ASSE
 defined('BASE_URL_ASSETS_FONT')                         || define('BASE_URL_ASSETS_FONT', BASE_URL_ASSETS_FULL_PATH.$_ENV['BASE_URL_ASSETS_FONT_PATH'] ?: 'font/');
 defined('BASE_URL_ASSETS_SOUND')                        || define('BASE_URL_ASSETS_SOUND', BASE_URL_ASSETS_FULL_PATH.$_ENV['BASE_URL_ASSETS_SOUND_PATH'] ?: 'sound/');
 
-defined('OPTION_HOUR')						            || define('OPTION_HOUR', $arrHour);
+defined('OPTION_HOURS')						            || define('OPTION_HOURS', $arrHours);
 defined('OPTION_HOUR_STRARR')                           || define('OPTION_HOUR_STRARR', $strArrHour);
+defined('OPTION_MINUTES')                               || define('OPTION_MINUTES', $arrMinutes);
 defined('OPTION_MINUTEINTERVAL')                        || define('OPTION_MINUTEINTERVAL', $arrMinuteInterval);
 defined('OPTION_MINUTEINTERVAL_STRARR')                 || define('OPTION_MINUTEINTERVAL_STRARR', $strArrMinuteInterval);
 defined('OPTION_MONTH')						            || define('OPTION_MONTH', $arrMonth);

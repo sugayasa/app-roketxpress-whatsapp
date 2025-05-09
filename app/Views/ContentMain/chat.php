@@ -13,7 +13,7 @@
                             <span class="user-chat-remove text-muted p-2 mb-3"><i class="ri-arrow-left-s-line font-size-22"></i></span>
                         </div>
                         <div class="me-3 ms-0">
-                            <div class="chat-user-img align-self-center me-3 ms-0">
+                            <div class="chat-user-img align-self-center me-0 ms-0">
                                 <div class="avatar-xs">
                                     <span class="avatar-title rounded-circle bg-primary-subtle text-primary" id="chat-topbar-initial">-</span>
                                 </div>
@@ -104,6 +104,147 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="modal-editReservation" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Reservation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="modalEditReservation-form">
+                    <div class="row border-bottom p-2 mb-2">
+                        <div class="col-md-6 col-12">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-title" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="modalEditReservation-title" name="modalEditReservation-title" placeholder="Enter reservation title" required>
+                                </div>
+                                <div class="col-lg-4 col-md-5 mb-3">
+                                    <label for="modalEditReservation-durationDay" class="form-label">Duration (Day)</label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-durationDay" data-type="minus"><i class="ri-subtract-line"></i></button>
+                                        <input type="text" class="form-control input-number text-end" id="modalEditReservation-durationDay" name="modalEditReservation-durationDay" value="1" min="1" max="99" required>
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-durationDay" data-type="plus"><i class="ri-add-line"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-7 mb-3">
+                                    <label for="modalEditReservation-date" class="form-label">Date</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control input-date-single" id="modalEditReservation-date" name="modalEditReservation-date" value="<?=date('d-m-Y')?>" required readonly>
+                                        <span class="input-group-text bg-light fw-bold px-2"><i class="ri-calendar-line"></i></span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-6 mb-3">
+                                    <label for="modalEditReservation-timeHour" class="form-label">Time</label>
+                                    <select class="form-control form-select" id="modalEditReservation-timeHour" name="modalEditReservation-timeHour" required></select>
+                                </div>
+                                <div class="col-lg-2 col-md-6 mb-3">
+                                    <label for="modalEditReservation-timeMinute" class="form-label">&nbsp;</label>
+                                    <select class="form-control form-select" id="modalEditReservation-timeMinute" name="modalEditReservation-timeMinute" required></select>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-pickUpArea" class="form-label">Pick Up Area</label>
+                                    <select class="form-control form-select" id="modalEditReservation-pickUpArea" name="modalEditReservation-pickUpArea" option-all="Without Transfer" option-all-value="-1"></select>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-hotelName" class="form-label">Hotel Name</label>
+                                    <input type="text" class="form-control" id="modalEditReservation-hotelName" name="modalEditReservation-hotelName" placeholder="Enter hotel name">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-pickupLocation" class="form-label">Pick Up Location</label>
+                                    <input type="text" class="form-control" id="modalEditReservation-pickupLocation" name="modalEditReservation-pickupLocation" placeholder="Enter pick up location">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-pickupLocationLinkUrl" class="form-label">Pick Up Location Url/Link</label>
+                                    <input type="text" class="form-control" id="modalEditReservation-pickupLocationLinkUrl" name="modalEditReservation-pickupLocationLinkUrl" placeholder="Enter pick up location url/link">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-dropOffLocation" class="form-label">Drop Off Location</label>
+                                    <input type="text" class="form-control" id="modalEditReservation-dropOffLocation" name="modalEditReservation-dropOffLocation" placeholder="Enter drop off location">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <div class="row">
+                                <div class="col-4 mb-3">
+                                    <label for="modalEditReservation-paxAdult" class="form-label">Adult</label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-paxAdult" data-type="minus"><i class="ri-subtract-line"></i></button>
+                                        <input type="text" class="form-control input-number text-end" id="modalEditReservation-paxAdult" name="modalEditReservation-paxAdult" value="1" min="1" max="99" required>
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-paxAdult" data-type="plus"><i class="ri-add-line"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-3">
+                                    <label for="modalEditReservation-paxChild" class="form-label">Child</label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-paxChild" data-type="minus"><i class="ri-subtract-line"></i></button>
+                                        <input type="text" class="form-control input-number text-end" id="modalEditReservation-paxChild" name="modalEditReservation-paxChild" value="0" min="0" max="99" required>
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-paxChild" data-type="plus"><i class="ri-add-line"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-3">
+                                    <label for="modalEditReservation-paxInfant" class="form-label">Infant</label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-paxInfant" data-type="minus"><i class="ri-subtract-line"></i></button>
+                                        <input type="text" class="form-control input-number text-end" id="modalEditReservation-paxInfant" name="modalEditReservation-paxInfant" value="0" min="0" max="99" required>
+                                        <button type="button" class="btn btn-light btn-number fw-bold px-2" data-field="modalEditReservation-paxInfant" data-type="plus"><i class="ri-add-line"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-5 mb-3">
+                                    <label for="modalEditReservation-incomeCurrency" class="form-label">Currency</label>
+                                    <select class="form-control form-select" id="modalEditReservation-incomeCurrency" name="modalEditReservation-incomeCurrency" required>
+										<option value="IDR">IDR</option>
+										<option value="USD">USD</option>
+									</select>
+                                </div>
+                                <div class="col-lg-6 col-md-12 mb-3">
+                                    <label for="modalEditReservation-incomeInteger" class="form-label">Integer</label>
+                                    <input type="text" class="form-control text-end" id="modalEditReservation-incomeInteger" name="modalEditReservation-incomeInteger" value="1" required maxlength="12"  onkeyup="calculateReservationIncomeIDR()" onkeypress="maskNumberInput(0, 999999999, 'modalEditReservation-incomeInteger');">
+                                </div>
+                                <div class="col-lg-2 col-md-4 mb-3">
+                                    <label for="modalEditReservation-incomeComma" class="form-label">Comma</label>
+                                    <input type="text" class="form-control text-end decimalInput" id="modalEditReservation-incomeComma" name="modalEditReservation-incomeComma" value="0" required maxlength="2" onkeyup="calculateReservationIncomeIDR()" onkeypress="maskNumberInput(0, 99, 'modalEditReservation-incomeComma');">
+                                </div>
+                                <div class="col-lg-4 col-md-5 mb-3">
+                                    <label for="modalEditReservation-incomeCurrencyExchange" class="form-label">Currency Exchange</label>
+                                    <input type="text" class="form-control text-end" id="modalEditReservation-incomeCurrencyExchange" name="modalEditReservation-incomeCurrencyExchange" value="1" required readonly onkeyup="calculateReservationIncomeIDR()" onkeypress="maskNumberInput(1, 999999999, 'modalEditReservation-incomeCurrencyExchange')">
+                                </div>
+                                <div class="col-lg-8 col-md-7 mb-3">
+                                    <label for="modalEditReservation-incomeTotalIDR" class="form-label">Total Income (IDR)</label>
+                                    <input type="text" class="form-control text-end" id="modalEditReservation-incomeTotalIDR" name="modalEditReservation-incomeTotalIDR" value="0" readonly>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-tourPlan" class="form-label">Tour Plan</label>
+                                    <textarea class="form-control fixHeightTextArea" id="modalEditReservation-tourPlan" name="modalEditReservation-tourPlan" placeholder="Enter tour plan"></textarea>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-remark" class="form-label">Remark</label>
+                                    <textarea class="form-control fixHeightTextArea" id="modalEditReservation-remark" name="modalEditReservation-remark" placeholder="Enter remark"></textarea>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="modalEditReservation-specialRequest" class="form-label">Special Request</label>
+                                    <textarea class="form-control fixHeightTextArea" id="modalEditReservation-specialRequest" name="modalEditReservation-specialRequest" placeholder="Enter special request"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end p-2">
+                        <input type="hidden" id="modalEditReservation-idReservation" name="modalEditReservation-idReservation" value="">
+                        <input type="hidden" id="modalEditReservation-bookingCode" name="modalEditReservation-bookingCode" value="">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+.fixHeightTextArea{
+	height: 60px !important;
+}
+</style>
 <script>
 	var jsFileUrl   =   "<?=BASE_URL_ASSETS_JS?>menu/chat.js?<?=date("YmdHis")?>";
         localStorage.setItem('idUserAdminMenuChat', "<?=$idUserAdmin?>");

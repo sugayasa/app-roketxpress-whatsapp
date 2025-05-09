@@ -106,11 +106,11 @@ class MainOperation extends Model
 
             $affectedRows   =   $db->affectedRows();
             if($affectedRows > 0) return ["status"=>true, "errCode"=>false];
-            return ["status"=>false, "errCode"=>1329];
+            return ["status"=>false, "errCode"=>1329, "queryString"=>$db->getLastQuery()];
         } catch (\Throwable $th) {
             $error		    =	$db->error();
             $errorCode	    =	$error['code'] == 0 ? 1329 : $error['code'];
-            return ["status"=>false, "errCode"=>$errorCode, "errorMessages"=>$th];
+            return ["status"=>false, "error"=>$error, "errCode"=>$errorCode, "errorMessages"=>$th, "queryString"=>$db->getLastQuery()];
         }
         return ["status"=>false, "errCode"=>false];
     }
@@ -385,6 +385,32 @@ class MainOperation extends Model
         if(is_null($row)) return 0;
 		return $row['TOTALUNREADCHAT'];
 	}
+    
+    public function getCountryCodeByPhoneNumber($phoneNumber) : int
+    {
+        $arrDataCountryCode =	$this->getDataCountryCode();
+		$phoneNumber	    =	preg_replace('/[^0-9]/', '', $phoneNumber);
+		$whileProcess	    =	true;
+		$idCountryReturn    =	0;
+		
+        foreach($arrDataCountryCode as $keyDataCountryCode){
+            $idCountry		=	$keyDataCountryCode->IDCOUNTRY;
+            $countryCode	=	$keyDataCountryCode->COUNTRYPHONECODE;
+            $countryCodeLen	=	strlen($countryCode);
+            
+            if(substr($phoneNumber, 0, $countryCodeLen) == $countryCode){
+                if($whileProcess == true){
+                    $idCountryReturn=	$idCountry;
+                    $whileProcess	=	false;
+                    break;
+                }
+            }
+            
+            if(!$whileProcess) break;
+        }
+		
+		return $idCountryReturn;
+	}
 
     public function getDataCountryCode() : array
     {
@@ -397,4 +423,37 @@ class MainOperation extends Model
         if(is_null($result)) return [];
         return $result;
     }
+
+    public function getCurrencyExchangeByDate($incomeCurrency, $date) : int
+    {
+        $this->select("EXCHANGEVALUE");
+        $this->from(APP_MAIN_DATABASE_NAME.'.t_currencyexchange', true);
+        $this->where('CURRENCY', $incomeCurrency);
+        $this->where('DATESTART < ', $date);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return 1;
+		return $row['EXCHANGEVALUE'];
+	}
+
+    public function getDetailReservation($idReservation) : array
+    {
+        $this->select("A.RESERVATIONDATESTART, A.RESERVATIONDATEEND, COUNT(B.IDRESERVATIONDETAILS) AS TOTALDETAILS, A.IDAREA, C.UPSELLINGTYPE");
+        $this->from(APP_MAIN_DATABASE_NAME.'.t_reservation A', true);
+        $this->join(APP_MAIN_DATABASE_NAME.'.t_reservationdetails AS B', 'A.IDRESERVATION = B.IDRESERVATION AND B.STATUS = 1', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_source AS C', 'A.IDSOURCE = C.IDSOURCE', 'LEFT');
+        $this->where('A.IDRESERVATION', $idReservation);
+        $this->groupBy('A.IDRESERVATION');
+        $this->limit(1);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return [
+            'RESERVATIONDATESTART'  => '',
+            'RESERVATIONDATEEND'    => '',
+            'TOTALDETAILS'          => 0,
+            'IDAREA'                => 0,
+            'UPSELLINGTYPE'         => 0
+        ];
+		return $row;
+	}
 }

@@ -59,6 +59,8 @@ $routes->post('chat/getDetailChat', 'Chat::getDetailChat', ['filter' => 'auth:mu
 $routes->post('chat/getDetailThreadACK', 'Chat::getDetailThreadACK', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('chat/sendMessage', 'Chat::sendMessage', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('chat/updateUnreadMessageCount', 'Chat::updateUnreadMessageCount', ['filter' => 'auth:mustBeLoggedIn']);
+$routes->post('chat/getDetailReservation', 'Chat::getDetailReservation', ['filter' => 'auth:mustBeLoggedIn']);
+$routes->post('chat/saveReservation', 'Chat::saveReservation', ['filter' => 'auth:mustBeLoggedIn']);
 
 $routes->post('contact/getDataContact', 'Contact::getDataContact', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('contact/getDetailContact', 'Contact::getDetailContact', ['filter' => 'auth:mustBeLoggedIn']);

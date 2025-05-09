@@ -120,9 +120,9 @@ class ChatModel extends Model
                     DATE_FORMAT(A.RESERVATIONDATEEND, '%a, %d %b %Y') AS RESERVATIONDATEENDSTR, LEFT(A.RESERVATIONTIMESTART, 5) AS RESERVATIONTIMESTARTSTR,
                     LEFT(A.RESERVATIONTIMEEND, 5) AS RESERVATIONTIMEEND, IF(A.HOTELNAME IS NULL OR A.HOTELNAME = '', '-', A.HOTELNAME) AS HOTELNAME,
                     IF(A.PICKUPLOCATION IS NULL OR A.PICKUPLOCATION = '', '-', A.PICKUPLOCATION) AS PICKUPLOCATION,
-                    IF(A.DROPOFFLOCATION IS NULL OR A.DROPOFFLOCATION = '', '-', A.DROPOFFLOCATION) AS DROPOFFLOCATION,
-                    A.NUMBEROFADULT, A.NUMBEROFCHILD, A.NUMBEROFINFANT, A.BOOKINGCODE, A.REMARK, A.TOURPLAN,
-                    IF(A.IDAREA = -1, 'Without Transfer', IFNULL(CONCAT(C.AREANAME, ' (', C.AREATAGS, ')'), '-')) AS AREANAME, A.SPECIALREQUEST");
+                    IF(A.DROPOFFLOCATION IS NULL OR A.DROPOFFLOCATION = '', '-', A.DROPOFFLOCATION) AS DROPOFFLOCATION, A.NUMBEROFADULT, A.NUMBEROFCHILD, A.NUMBEROFINFANT,
+                    A.BOOKINGCODE, A.REMARK, A.TOURPLAN, IF(A.IDAREA = -1, 'Without Transfer', IFNULL(CONCAT(C.AREANAME, ' (', C.AREATAGS, ')'), '-')) AS AREANAME, A.SPECIALREQUEST,
+                    A.IDRESERVATION");
         $this->from(APP_MAIN_DATABASE_NAME.'.t_reservation A', true);
         $this->join(APP_MAIN_DATABASE_NAME.'.m_source AS B', 'A.IDSOURCE = B.IDSOURCE', 'LEFT');
         $this->join(APP_MAIN_DATABASE_NAME.'.m_area AS C', 'A.IDAREA = C.IDAREA', 'LEFT');
@@ -162,6 +162,32 @@ class ChatModel extends Model
         $result     =   $this->get()->getResultObject();
 
         if(is_null($result)) return false;
+        return $result;
+    }
+
+    public function getDetailReservation($idReservation)
+    {	
+        $this->select("RESERVATIONTITLE, DURATIONOFDAY, DATE_FORMAT(RESERVATIONDATESTART, '%d-%m-%Y') AS RESERVATIONDATESTART, SUBSTRING(RESERVATIONTIMESTART, 1, 2) AS RESERVATIONHOUR,
+            SUBSTRING(RESERVATIONTIMESTART, 4, 2) AS RESERVATIONMINUTE, IDAREA, HOTELNAME, PICKUPLOCATION, URLPICKUPLOCATION, DROPOFFLOCATION, NUMBEROFADULT, NUMBEROFCHILD, NUMBEROFINFANT,
+            INCOMEAMOUNTCURRENCY, SUBSTRING_INDEX(SUBSTRING_INDEX(INCOMEAMOUNT, '.', 1), '.', -1) AS INCOMEAMOUNTINTEGER, SUBSTRING_INDEX(SUBSTRING_INDEX(INCOMEAMOUNT, '.', 2), '.', -1) AS INCOMEAMOUNTDECIMAL,
+            INCOMEEXCHANGECURRENCY, INCOMEAMOUNTIDR, TOURPLAN, REMARK, SPECIALREQUEST");
+        $this->from(APP_MAIN_DATABASE_NAME.'.t_reservation', true);
+        $this->where('IDRESERVATION', $idReservation);
+        $this->limit(1);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return false;
+        return $row;
+    }
+
+    public function getDataCurrencyExchange() : array
+    {
+        $this->select("CURRENCY, EXCHANGETOIDR");
+        $this->from(APP_MAIN_DATABASE_NAME.'.helper_exchangecurrency', true);
+        $this->orderBy('CURRENCY');
+
+        $result     =   $this->get()->getResultObject();
+        if(is_null($result)) return [];
         return $result;
     }
 }

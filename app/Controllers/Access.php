@@ -296,13 +296,16 @@ class Access extends ResourceController
     private function getDataOption()
     {
         $accessModel            =   new AccessModel();
+        $dataAllAreaType        =   encodeDatabaseObjectResultKey($accessModel->getDataAllAreaType(), 'ID');
         $dataUserAdminLevel     =   encodeDatabaseObjectResultKey($accessModel->getDataUserAdminLevel(), 'ID');
         $dataUserAdminLevelMenu =   encodeDatabaseObjectResultKey($accessModel->getDataUserAdminLevelMenu(), 'ID');
 
         return [
-            "dataUserAdminLevelMenu"=>  $dataUserAdminLevelMenu,
+            "dataAllAreaType"       =>  $dataAllAreaType,
             "dataUserAdminLevel"    =>  $dataUserAdminLevel,
-            "optionHour"	        =>  OPTION_HOUR,
+            "dataUserAdminLevelMenu"=>  $dataUserAdminLevelMenu,
+            "optionHours"	        =>  OPTION_HOURS,
+            "optionMinutes"         =>  OPTION_MINUTES,
             "optionMinuteInterval"	=>  OPTION_MINUTEINTERVAL,
             "optionMonth"	        =>  OPTION_MONTH,
             "optionYear"	        =>  OPTION_YEAR

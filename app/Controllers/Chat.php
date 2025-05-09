@@ -142,6 +142,7 @@ class Chat extends ResourceController
         $idContact                  =   $detailContact['IDCONTACT'];
         $detailContact['IDCONTACT'] =   hashidEncode($idContact);
         $listActiveReservation      =   $chatModel->getListActiveReservation($idContact);
+        $listActiveReservation      =   encodeDatabaseObjectResultKey($listActiveReservation, 'IDRESERVATION');
         return $this->setResponseFormat('json')
                     ->respond([
                         "detailContact"         =>  $detailContact,
@@ -259,5 +260,207 @@ class Chat extends ResourceController
 
         $mainOperation->updateChatListAndRTDBStats($idChatList, false);
         return throwResponseOK('Unread message count updated successfully');
+    }
+    
+    public function getDetailReservation()
+    {
+        helper(['form']);
+        $rules          =   [
+            'idReservation' =>  ['label' => 'Id Reservation', 'rules' => 'required|alpha_numeric']
+        ];
+
+        $messages   =   [
+            'idReservation' => [
+                'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ]
+        ];
+
+        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+
+        $chatModel          =   new ChatModel();
+        $idReservation      =   $this->request->getVar('idReservation');
+        $idReservation      =   hashidDecode($idReservation);
+        $detailReservation  =   $chatModel->getDetailReservation($idReservation);
+
+        if(!$detailReservation) return throwResponseNotFound('Reservation details not found');
+        $dataCurrencyExchange           =   $chatModel->getDataCurrencyExchange();
+        $detailReservation['IDAREA']    =   hashidEncode($detailReservation['IDAREA']);
+        return $this->setResponseFormat('json')
+                    ->respond([
+                        "detailReservation"     =>  $detailReservation,
+                        "dataCurrencyExchange"  =>  $dataCurrencyExchange
+                     ]);
+    }
+
+    public function saveReservation()
+    {
+        helper(['form']);
+        $rules              =   [
+            'modalEditReservation-title'                    =>  ['label' => 'Title', 'rules' => 'required'],
+            'modalEditReservation-durationDay'              =>  ['label' => 'Duration Day', 'rules' => 'required|numeric|greater_than[0]|less_than[100]'],
+            'modalEditReservation-date'                     =>  ['label' => 'Reservation Date', 'rules' => 'required|exact_length[10]|valid_date[d-m-Y]'],
+            'modalEditReservation-timeHour'                 =>  ['label' => 'Reservation Hour', 'rules' => 'required|regex_match[/^(0[0-9]|1[0-9]|2[0-3])$/]'],
+            'modalEditReservation-timeMinute'               =>  ['label' => 'Reservation Minute', 'rules' => 'required|numeric|regex_match[/^([0-5][0-9])$/]'],
+            'modalEditReservation-pickUpArea'               =>  ['label' => 'Pick up Area', 'rules' => 'required|regex_match[/^(-1|[a-zA-Z0-9]+)$/]'],
+            'modalEditReservation-paxAdult'                 =>  ['label' => 'Pax (Adult)', 'rules' => 'required|numeric|greater_than[0]|less_than[100]'],
+            'modalEditReservation-incomeCurrency'           =>  ['label' => 'Currency', 'rules' => 'required|regex_match[/^[A-Z]{3}$/]'],
+            'modalEditReservation-incomeInteger'            =>  ['label' => 'Income Integer', 'rules' => 'required|regex_match[/^(1|[1-9]\d{0,2}(,\d{3})*)$/]'],
+            'modalEditReservation-incomeComma'              =>  ['label' => 'Income Comma', 'rules' => 'required|regex_match[/^(0[0-9]|[1-9][0-9])$/]'],
+            'modalEditReservation-incomeCurrencyExchange'   =>  ['label' => 'Currency Exchange', 'rules' => 'required|regex_match[/^(1|[1-9]\d{0,2}(,\d{3})*)$/]'],
+            'modalEditReservation-idReservation'            =>  ['label' => 'Id Reservation', 'rules' => 'required|alpha_numeric']
+        ];
+
+        $messages   =   [
+            'modalEditReservation-timeHour' =>  [
+                'regex_match'   =>  '{field} must be between 00 and 23'
+            ],
+            'modalEditReservation-timeMinute'   =>  [
+                'regex_match'   =>  '{field} must be between 00 and 59'
+            ],
+            'modalEditReservation-pickUpArea'   =>  [
+                'regex_match'   =>  'Invalid selected {field}'
+            ],
+            'modalEditReservation-incomeCurrency'   =>  [
+                'regex_match'   =>  'Invalid selected {field}'
+            ],
+            'modalEditReservation-incomeInteger'    =>  [
+                'regex_match'   =>  'The {field} must contain only numbers and comma (,) as thousand separator'
+            ],
+            'modalEditReservation-incomeComma'      =>  [
+                'regex_match'   =>  '{field} must be between 00 and 99'
+            ],
+            'modalEditReservation-incomeCurrencyExchange'   =>  [
+                'regex_match'   =>  'The {field} must contain only numbers and comma (,) as thousand separator'
+            ],
+            'modalEditReservation-idReservation'    => [
+                'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ]
+        ];
+
+        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+
+        $reservationTitle       =   $this->request->getVar('modalEditReservation-title');
+        $durationDay            =   $this->request->getVar('modalEditReservation-durationDay');
+        $reservationDate        =   $this->request->getVar('modalEditReservation-date');
+        $reservationDate        =   Time::createFromFormat('d-m-Y', $reservationDate)->format('Y-m-d');
+        $reservationTimeHour    =   $this->request->getVar('modalEditReservation-timeHour');
+        $reservationTimeMinute  =   $this->request->getVar('modalEditReservation-timeMinute');
+        $reservationTime        =   $reservationTimeHour.":".$reservationTimeMinute.":00";
+        $idPickUpArea           =   $this->request->getVar('modalEditReservation-pickUpArea');
+        $idPickUpArea           =   $idPickUpArea != -1 ? hashidDecode($idPickUpArea) : $idPickUpArea;
+        $hotelName              =   $this->request->getVar('modalEditReservation-hotelName');
+        $pickupLocation         =   $this->request->getVar('modalEditReservation-pickupLocation');
+        $pickupLocationLinkUrl  =   $this->request->getVar('modalEditReservation-pickupLocationLinkUrl');
+        $dropOffLocation        =   $this->request->getVar('modalEditReservation-dropOffLocation');
+        $paxAdult               =   $this->request->getVar('modalEditReservation-paxAdult');
+        $paxChild               =   $this->request->getVar('modalEditReservation-paxChild');
+        $paxInfant              =   $this->request->getVar('modalEditReservation-paxInfant');
+		$paxTotal				=	$paxAdult + $paxChild + $paxChild;
+        $incomeCurrency         =   $this->request->getVar('modalEditReservation-incomeCurrency');
+        $incomeInteger          =   $this->request->getVar('modalEditReservation-incomeInteger');
+        $incomeInteger          =   str_replace(',', '', $incomeInteger);
+        $incomeComma            =   $this->request->getVar('modalEditReservation-incomeComma');
+        $incomeTotal            =   ($incomeInteger.".".$incomeComma) * 1;
+        $tourPlan	            =   $this->request->getVar('modalEditReservation-tourPlan');
+        $remark                 =   $this->request->getVar('modalEditReservation-remark');
+        $specialRequest         =   $this->request->getVar('modalEditReservation-specialRequest');
+        $idReservation          =   $this->request->getVar('modalEditReservation-idReservation');
+        $idReservation          =   hashidDecode($idReservation);
+
+        if($idPickUpArea == -1){
+			if($hotelName != "" || $pickupLocation != "" || $dropOffLocation != ""){
+                return throwResponseNotAcceptable('Please select a valid area!<br/><br/> <b>Without Transfer</b> can only be selected if the <b>hotel, pick up and drop off location</b> are blank');
+			}
+		}
+		
+		if($idPickUpArea != -1){
+			if($hotelName == "" && $pickupLocation == "" && $dropOffLocation == ""){
+                return throwResponseNotAcceptable('Please enter one of the <b>hotel name, pick up or drop off location</b>');
+			}
+		}
+
+        $mainOperation      =   new MainOperation();
+        $currencyExchange	=	$incomeCurrency == "IDR" ? 1 : $mainOperation->getCurrencyExchangeByDate($incomeCurrency, $reservationDate);
+		$incomeTotalIDR     =	$incomeTotal * $currencyExchange;
+		$userAdminName		=	$this->userData->name;
+        
+		if(strpos(strtolower($reservationTitle), "japan") !== false && strpos(strtolower($specialRequest), "japan") === false) $specialRequest	=	"Japanese Driver. ".$specialRequest;
+		if(strpos(strtolower($reservationTitle), "chinese") !== false && strpos(strtolower($specialRequest), "chinese") === false) $specialRequest	=	"Chinese Driver. ".$specialRequest;
+
+        $arrUpdateRsv		=	[
+			"IDAREA"				=>	$idPickUpArea,
+			"RESERVATIONTITLE"		=>	$reservationTitle,
+			"DURATIONOFDAY"			=>	$durationDay,
+			"RESERVATIONDATESTART"	=>	$reservationDate,
+			"RESERVATIONDATEEND"	=>	$reservationDate,
+			"RESERVATIONTIMESTART"	=>	$reservationTime,
+			"RESERVATIONTIMEEND"	=>	$reservationTime,
+			"HOTELNAME"				=>	$hotelName,
+			"PICKUPLOCATION"		=>	$pickupLocation,
+			"DROPOFFLOCATION"		=>	$dropOffLocation,
+			"NUMBEROFADULT"			=>	$paxAdult,
+			"NUMBEROFCHILD"			=>	$paxChild,
+			"NUMBEROFINFANT"		=>	$paxInfant,
+			"INCOMEAMOUNTCURRENCY"	=>	$incomeCurrency,
+			"INCOMEAMOUNT"			=>	$incomeTotal,
+			"INCOMEEXCHANGECURRENCY"=>	$currencyExchange,
+			"INCOMEAMOUNTIDR"		=>	$incomeTotalIDR,
+			"REMARK"				=>	$remark,
+			"TOURPLAN"				=>	$tourPlan,
+			"SPECIALREQUEST"		=>	$specialRequest,
+			"URLPICKUPLOCATION"		=>	$pickupLocationLinkUrl,
+			"USERLASTUPDATE"		=>	$userAdminName,
+			"DATETIMELASTUPDATE"	=>	$this->currentDateTime
+        ];
+
+        $reservationDateEnd =	$reservationDate;
+		if($durationDay > 1){
+			$additionalDays						=	$durationDay - 1;
+			$reservationDateEnd                 =	date('Y-m-d', strtotime($reservationDate. ' + '.$additionalDays.' days'));
+			$arrUpdateRsv['RESERVATIONDATEEND']	=	$reservationDateEnd;
+		}
+
+		$detailReservation      =	$mainOperation->getDetailReservation($idReservation);
+		$upsellingType			=	$detailReservation['UPSELLINGTYPE'];
+		$dateStartReservation	=	$detailReservation['RESERVATIONDATESTART'];
+		$dateEndReservation		=	$detailReservation['RESERVATIONDATEEND'];
+		$totalDetails			=	$detailReservation['TOTALDETAILS'];
+		$oldIdArea				=	$detailReservation['IDAREA'];
+
+        if(($dateStartReservation != $reservationDate || $dateEndReservation != $reservationDateEnd) && $totalDetails > 0){
+			return throwResponseNotAcceptable("Please remove all reservation/cost details before changing reservation date");
+		}
+		
+		if($oldIdArea != $idPickUpArea && $oldIdArea != 0 && $totalDetails > 0){
+            return throwResponseNotAcceptable("Please remove all reservation/cost details before changing <b>pick up area</b>");
+		}
+		
+		$mainOperation->updateDataTable(APP_MAIN_DATABASE_NAME.'.t_reservationdetails', ["SCHEDULETYPE"=>1], ["IDRESERVATION" => $idReservation, "IDPRODUCTTYPE"=>2]);		
+		if($totalDetails > 0){
+			if((isset($specialRequest) && $specialRequest != "" && $specialRequest != "-") || $durationDay > 1 || $paxTotal > 6 || $upsellingType == 1){
+				$mainOperation->updateDataTable(APP_MAIN_DATABASE_NAME.'.t_reservationdetails', ["SCHEDULETYPE"=>2], ["IDRESERVATION" => $idReservation, "IDPRODUCTTYPE"=>2]);
+			}
+		}
+
+		$procUpdateRsv	=	$mainOperation->updateDataTable(APP_MAIN_DATABASE_NAME.'.t_reservation', $arrUpdateRsv, ["IDRESERVATION" => $idReservation]);
+		
+		if(!$procUpdateRsv['status']) return switchMySQLErrorCode($procUpdateRsv['errCode']);
+        return throwResponseOK(
+            'Reservation data updated successfully',
+            [
+                'reservationTitle'  =>  $reservationTitle,
+                'reservationDateStr'=>  Time::createFromFormat('Y-m-d', $reservationDate)->format('D, d M Y'),
+                'reservationTimeStr'=>  $reservationTimeHour.":".$reservationTimeMinute,
+                'paxDetailStr'      =>  $paxAdult." Adult, ".$paxChild." Child, ".$paxInfant." Infant",
+                'hotelName'         =>  $hotelName == "" ? '-' : $hotelName,
+                'pickupLocation'    =>  $pickupLocation == "" ? '-' : $pickupLocation,
+                'dropOffLocation'   =>  $dropOffLocation == "" ? '-' : $dropOffLocation,
+                'tourPlan'          =>  $tourPlan == "" ? '-' : $tourPlan,
+                'remark'            =>  $remark == "" ? '-' : $remark,
+                'specialRequest'    =>  $specialRequest == "" ? '-' : $specialRequest
+            ]
+        );
     }
 }

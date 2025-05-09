@@ -86,6 +86,15 @@ class AccessModel extends Model
         return $this->get()->getResultObject();
     }
 
+    public function getDataAllAreaType()
+    {
+        $this->select("IDAREA AS ID, CONCAT(AREANAME, ' (', AREATAGS, ')') AS VALUE");
+        $this->from(APP_MAIN_DATABASE_NAME.'.m_area', true);
+        $this->orderBy('AREANAME');
+
+        return $this->get()->getResultObject();
+    }
+
     public function getDataUserAdminLevel()
     {
         $this->select('IDUSERADMINLEVEL AS ID, LEVELNAME AS VALUE');
