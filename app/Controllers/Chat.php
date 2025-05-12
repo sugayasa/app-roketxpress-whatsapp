@@ -450,16 +450,18 @@ class Chat extends ResourceController
         return throwResponseOK(
             'Reservation data updated successfully',
             [
-                'reservationTitle'  =>  $reservationTitle,
-                'reservationDateStr'=>  Time::createFromFormat('Y-m-d', $reservationDate)->format('D, d M Y'),
-                'reservationTimeStr'=>  $reservationTimeHour.":".$reservationTimeMinute,
-                'paxDetailStr'      =>  $paxAdult." Adult, ".$paxChild." Child, ".$paxInfant." Infant",
-                'hotelName'         =>  $hotelName == "" ? '-' : $hotelName,
-                'pickupLocation'    =>  $pickupLocation == "" ? '-' : $pickupLocation,
-                'dropOffLocation'   =>  $dropOffLocation == "" ? '-' : $dropOffLocation,
-                'tourPlan'          =>  $tourPlan == "" ? '-' : $tourPlan,
-                'remark'            =>  $remark == "" ? '-' : $remark,
-                'specialRequest'    =>  $specialRequest == "" ? '-' : $specialRequest
+                'dataUpdate'    =>  [
+                    'reservationTitle'  =>  $reservationTitle,
+                    'reservationDateStr'=>  Time::createFromFormat('Y-m-d', $reservationDate)->format('D, d M Y'),
+                    'reservationTimeStr'=>  $reservationTimeHour.":".$reservationTimeMinute,
+                    'paxDetailStr'      =>  $paxAdult." Adult, ".$paxChild." Child, ".$paxInfant." Infant",
+                    'hotelName'         =>  $hotelName == "" ? '-' : $hotelName,
+                    'pickupLocation'    =>  $pickupLocation == "" ? '-' : $pickupLocation,
+                    'dropOffLocation'   =>  $dropOffLocation == "" ? '-' : $dropOffLocation,
+                    'tourPlan'          =>  $tourPlan == "" ? '-' : $tourPlan,
+                    'remark'            =>  $remark == "" ? '-' : $remark,
+                    'specialRequest'    =>  $specialRequest == "" ? '-' : $specialRequest
+                ]
             ]
         );
     }

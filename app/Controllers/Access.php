@@ -339,6 +339,7 @@ class Access extends ResourceController
         $detailUserAdmin=   $accessModel->getUserAdminDetail($idUserAdmin);
 
         if(is_null($detailUserAdmin)) return throwResponseNotFound("User admin details not found");
+        unset($detailUserAdmin['IDUSERADMINLEVEL']);
         return $this->setResponseFormat('json')
                     ->respond([
                         "detailUserAdmin"   =>  $detailUserAdmin
