@@ -60,6 +60,8 @@
                                 <input type="hidden" id="chat-idContact" name="chat-idContact" value="">
                                 <input type="hidden" id="chat-idChatList" name="chat-idChatList" value="">
                                 <input type="hidden" id="chat-timeStampLastReply" name="chat-timeStampLastReply" value="0">
+                                <input type="hidden" id="chat-threadPage" name="chat-threadPage" value="1">
+                                <input type="hidden" id="chat-isMaximumChatThreadContent" name="chat-isMaximumChatThreadContent" value="false">
                                 <button type="submit" class="btn btn-primary font-size-16 btn-lg chat-send waves-effect waves-light" id="chat-btnSendMessage"><i class="ri-send-plane-2-fill"></i></button>
                             </li>
                         </ul>

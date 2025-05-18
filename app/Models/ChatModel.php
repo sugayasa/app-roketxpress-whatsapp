@@ -90,7 +90,7 @@ class ChatModel extends Model
         return $row;
     }
 
-    public function getListChatThread($idChatList, $userTimeZoneOffset, $page, $dataPerPage = 100)
+    public function getListChatThread($idChatList, $page, $dataPerPage = 10)
     {	
         $pageOffset =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATTHREAD, A.IDMESSAGE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME, A.CHATCONTENTHEADER, A.CHATCONTENTBODY,

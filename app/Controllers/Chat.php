@@ -54,6 +54,7 @@ class Chat extends ResourceController
             foreach($dataChatList as $keyChatList){
                 $lastMessage            =   $keyChatList->LASTMESSAGE;
                 $lastMessage            =   strlen($lastMessage) > 30 ? substr($lastMessage, 0, 30)."..." : $lastMessage;
+                $lastMessage            =   mb_convert_encoding($lastMessage, 'UTF-8', 'UTF-8');
                 $lastMessageDateTime    =   $keyChatList->DATETIMELASTMESSAGE;
                 $lastMessageDateTimeTF  =   Time::createFromTimestamp($lastMessageDateTime, 'UTC')->setTimezone(APP_TIMEZONE);
                 $lastMessageDateTimeStr =   $lastMessageDateTimeTF->toLocalizedString('yyyy-MM-dd HH:mm:ss');
@@ -69,6 +70,7 @@ class Chat extends ResourceController
                             "dataChatList"  =>  $dataChatList,
                             "loadMoreData"  =>  $loadMoreData
                         ]);
+                        error_log(json_last_error_msg());
         } else {
             return throwResponseNotFound('No conversation found');
         }
@@ -98,7 +100,7 @@ class Chat extends ResourceController
         $idUserAdmin        =   $this->userData->idUserAdmin;
         $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
         $detailContact      =   $chatModel->getDetailContactChat($idChatList);
-        $listChatThread     =   $chatModel->getListChatThread($idChatList, $userTimeZoneOffset, $page);
+        $listChatThread     =   $chatModel->getListChatThread($idChatList, $page);
         $dateNow            =   new Time('now');
         $dateToday          =   $dateNow->format('Y-m-d');
         $dateYesterday      =   $dateNow->modify('-1 day')->format('Y-m-d');
@@ -149,6 +151,65 @@ class Chat extends ResourceController
                         "listChatThread"        =>  array_reverse($listChatThread),
                         "listActiveReservation" =>  $listActiveReservation
                      ]);
+    }
+    
+    public function getMoreChatThread()
+    {
+        helper(['form']);
+        $rules          =   [
+            'idChatList'=>  ['label' => 'Id contact', 'rules' => 'required|alpha_numeric'],
+            'page'      =>  ['label' => 'Id contact', 'rules' => 'required|numeric']
+        ];
+
+        $messages   =   [
+            'idChatList'=> [
+                'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ],
+            'page'      => [
+                'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ]
+        ];
+
+        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+
+        $chatModel          =   new ChatModel();
+        $idChatList         =   $this->request->getVar('idChatList');
+        $idChatList         =   hashidDecode($idChatList, true);
+        $page               =   $this->request->getVar('page');
+        $listChatThread     =   $chatModel->getListChatThread($idChatList, $page);
+
+        if(!$listChatThread){
+            return throwResponseNotFound('No more conversation found');
+        } else {
+            $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
+            $dateNow            =   new Time('now');
+            $dateToday          =   $dateNow->format('Y-m-d');
+            $dateYesterday      =   $dateNow->modify('-1 day')->format('Y-m-d');
+    
+            foreach($listChatThread as $keyChatThread){
+                $dateTimeChat   =   $keyChatThread->DATETIMECHAT;
+                $dateTimeChatTF =   Time::createFromTimestamp($dateTimeChat, 'UTC')->setTimezone($userTimeZoneOffset);
+                $chatDate       =   $dateTimeChatTF->toDateString();
+
+                $keyChatThread->CHATTIME    =   $dateTimeChatTF->toLocalizedString('H:mm');
+                if($chatDate == $dateToday){
+                    $keyChatThread->DAYTITLE    =   'Today';
+                } else if($chatDate == $dateYesterday) {
+                    $keyChatThread->DAYTITLE    =   'Yesterday';
+                } else {
+                    $keyChatThread->DAYTITLE    =   $dateTimeChatTF->toLocalizedString('d MMM Y');
+                }
+
+            }
+
+            $listChatThread =   encodeDatabaseObjectResultKey($listChatThread, 'IDCHATTHREAD', true);
+            return $this->setResponseFormat('json')
+                        ->respond([
+                            "listChatThread"    =>  array_reverse($listChatThread),
+                         ]);
+        }
     }
 
     public function getDetailThreadACK()
