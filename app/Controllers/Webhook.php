@@ -41,6 +41,7 @@ class Webhook extends ResourceController
         if(!is_null($messages)) {
             foreach ($messages as $message) {
                 $author             =   $message->author ?? null;
+                $chatId             =   $message->chatId ?? null;
                 $messageId          =   $message->id ?? null;
                 $messageType        =   $message->type ?? null;
                 $messageBody        =   $message->body ?? null;
@@ -50,7 +51,7 @@ class Webhook extends ResourceController
                 $quotedMsgId        =   $message->quotedMsgId ?? null;
                 $isForwarded        =   $message->isForwarded ?? null;
                 $timeStamp          =   $message->time ?? null;
-                $phoneNumber        =   getPhoneNumberFromWhatsappAuthor($author);
+                $phoneNumber        =   getPhoneNumberFromWhatsappAuthor($chatId);
                 $detailChatList     =   $mainOperation->getDetailChatListByPhoneNumber($phoneNumber);
                 $idContact          =   $detailChatList['IDCONTACT'] ?? null;
                 $idChatThreadType   =   1;
