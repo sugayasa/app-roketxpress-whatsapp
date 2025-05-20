@@ -40,22 +40,38 @@ class Webhook extends ResourceController
 
         if(!is_null($messages)) {
             foreach ($messages as $message) {
-                $author         =   $message->author ?? null;
-                $messageId      =   $message->id ?? null;
-                $messageType    =   $message->type ?? null;
-                $messageBody    =   $message->body ?? null;
-                $senderName     =   $message->senderName ?? null;
-                $fromMe         =   $message->fromMe ?? null;
-                $caption        =   $message->caption ?? null;
-                $quotedMsgId    =   $message->quotedMsgId ?? null;
-                $isForwarded    =   $message->isForwarded ?? null;
-                $timeStamp      =   $message->time ?? null;
+                $author             =   $message->author ?? null;
+                $messageId          =   $message->id ?? null;
+                $messageType        =   $message->type ?? null;
+                $messageBody        =   $message->body ?? null;
+                $senderName         =   $message->senderName ?? null;
+                $fromMe             =   $message->fromMe ?? null;
+                $caption            =   $message->caption ?? null;
+                $quotedMsgId        =   $message->quotedMsgId ?? null;
+                $isForwarded        =   $message->isForwarded ?? null;
+                $timeStamp          =   $message->time ?? null;
+                $phoneNumber        =   getPhoneNumberFromWhatsappAuthor($author);
+                $detailChatList     =   $mainOperation->getDetailChatListByPhoneNumber($phoneNumber);
+                $idContact          =   $detailChatList['IDCONTACT'] ?? null;
+                $idChatThreadType   =   1;
+
+                switch($messageType){
+                    case 'image'    :   $idChatThreadType   =   2; break;
+                    case 'document' :   $idChatThreadType   =   3; break;
+                    case 'audio'    :   $idChatThreadType   =   4; break;
+                    case 'video'    :   $idChatThreadType   =   5; break;
+                    case 'location' :   $idChatThreadType   =   6; break;
+                    default         :   break;
+                }
+
+                $arrAdditionalThread =   [
+                    'idChatThreadType'  =>  $idChatThreadType,
+                    'quotedMsgId'       =>  $quotedMsgId,
+                    'caption'           =>  $caption,
+                    'isForwarded'       =>  $isForwarded
+                ];
 
                 if(!$fromMe){
-                    $phoneNumber    =   getPhoneNumberFromWhatsappAuthor($author);
-                    $detailChatList =   $mainOperation->getDetailChatListByPhoneNumber($phoneNumber);
-                    $idContact      =   $detailChatList['IDCONTACT'] ?? null;
-
                     if(!$detailChatList || is_null($idContact)){
                         $idCountry          =   $mainOperation->getCountryCodeByPhoneNumber($phoneNumber);
                         $arrInsertContact   =   [
@@ -90,7 +106,10 @@ class Webhook extends ResourceController
                         }
                     }
 
-                    if(!is_null($idContact)) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 0);
+                    if(!is_null($idContact)) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 0, $arrAdditionalThread);
+                } else {
+                    $isMessageIdExist =   $cronModel->isMessageIdExist($messageId);
+                    if(!$isMessageIdExist) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 1, $arrAdditionalThread);
                 }
             }
         } else if(!is_null($acks)) {

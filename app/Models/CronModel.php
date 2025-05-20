@@ -106,4 +106,12 @@ class CronModel extends Model
         ];
         return $result;
     }
+
+    public function isMessageIdExist($idMessage) : bool{
+        $this->select("IDCHATTHREAD")->from('t_chatthread', true)->where("IDMESSAGE", $idMessage);
+        $result =   $this->get()->getRowArray();
+
+        if(is_null($result)) return false;
+        return true;
+    }
 }

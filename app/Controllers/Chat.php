@@ -49,14 +49,19 @@ class Chat extends ResourceController
         $totalData          =   0;
 
         if($dataChatList && count($dataChatList) > 0) {
-            $dataChatList   =   encodeDatabaseObjectResultKey($dataChatList, 'IDCHATLIST', true);
+            $dataChatList       =   encodeDatabaseObjectResultKey($dataChatList, 'IDCHATLIST', true);
+            $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
 
             foreach($dataChatList as $keyChatList){
-                $lastMessage            =   $keyChatList->LASTMESSAGE;
-                $lastMessage            =   strlen($lastMessage) > 30 ? substr($lastMessage, 0, 30)."..." : $lastMessage;
-                $lastMessage            =   mb_convert_encoding($lastMessage, 'UTF-8', 'UTF-8');
+                $lastMessage    =   $keyChatList->LASTMESSAGE;
+
+                if(substr($lastMessage, 0, 2)  != '<i'){
+                    $lastMessage    =   strlen($lastMessage) > 30 ? substr($lastMessage, 0, 30)."..." : $lastMessage;
+                    $lastMessage    =   mb_convert_encoding($lastMessage, 'UTF-8', 'UTF-8');
+                }
+
                 $lastMessageDateTime    =   $keyChatList->DATETIMELASTMESSAGE;
-                $lastMessageDateTimeTF  =   Time::createFromTimestamp($lastMessageDateTime, 'UTC')->setTimezone(APP_TIMEZONE);
+                $lastMessageDateTimeTF  =   Time::createFromTimestamp($lastMessageDateTime, 'UTC')->setTimezone($userTimeZoneOffset);
                 $lastMessageDateTimeStr =   $lastMessageDateTimeTF->toLocalizedString('yyyy-MM-dd HH:mm:ss');
 
                 $keyChatList->DATETIMELASTMESSAGESTR=   getDateTimeIntervalStringInfo($lastMessageDateTimeStr, 1);

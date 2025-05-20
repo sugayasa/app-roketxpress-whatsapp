@@ -81,7 +81,7 @@
 
 				if(chatListItem.length > 0){
 					let chatListItemCounter = chatListItem.find('.unread-message');
-					chatListItem.find('.chat-user-message').text(senderFirstName+': '+messageBodyTrim);
+					chatListItem.find('.chat-user-message').html(senderFirstName+': '+messageBodyTrim);
 
 					if(totalUnreadMessage > 0){
 						if(chatListItemCounter.length > 0){
@@ -153,7 +153,9 @@
 							}
 							
 							activateChatContentOptionButton();
-							scrollToBottomSimpleBar('chat-conversation');
+							activateScrollToTopChatThread();
+							recalculateSimpleBar('chat-conversation', true);
+							activateMagnificPopup();
 						}
 
 						$("#chat-timeStampLastReply").val(dateTimeLastReply);

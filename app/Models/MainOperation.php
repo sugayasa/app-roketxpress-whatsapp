@@ -182,17 +182,28 @@ class MainOperation extends Model
         return $result;
     }
 
-    public function insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageGenerated, $idUserAdmin = 1) : int
+    public function insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageGenerated, $idUserAdmin = 1, $arrAdditionalThread = null) : int
     {
         $idChatList             =   $this->getIdChatList($idContact);
+        $idChatThreadType       =   isset($arrAdditionalThread['idChatThreadType']) && is_numeric($arrAdditionalThread['idChatThreadType']) ? $arrAdditionalThread['idChatThreadType'] : 1;
         $messageHeader          =   isset($messageGenerated['header']) ? $messageGenerated['header'] : '';
         $messageBody            =   isset($messageGenerated['body']) ? $messageGenerated['body'] : $messageGenerated;
         $messageFooter          =   isset($messageGenerated['footer']) ? $messageGenerated['footer'] : '';
         $isTemplateMessage      =   isset($messageGenerated['body']) ? 1 : 0;
+
+        switch($idChatThreadType){
+            case 2  : $lastMessageChatList = '<i class="ri-file-image-line"></i> Image'; break;
+            case 3  : $lastMessageChatList = '<i class="ri-article-line"></i> Document'; break;
+            case 4  : $lastMessageChatList = '<i class="ri-mic-2-line"></i> Audio'; break;
+            case 5  : $lastMessageChatList = '<i class="ri-film-line"></i> Video'; break;
+            case 6  : $lastMessageChatList = '<i class="ri-map-pin-line"></i> Location'; break;
+            default : $lastMessageChatList = $messageBody; break;
+        }
+
         $arrInsertUpdateChatList=   [
             "IDCONTACT"             =>  $idContact,
             "TOTALUNREADMESSAGE"    =>  0,
-            "LASTMESSAGE"           =>  $messageBody,
+            "LASTMESSAGE"           =>  $lastMessageChatList,
             "DATETIMELASTMESSAGE"   =>  $currentTimeStamp
         ];
 
@@ -209,6 +220,7 @@ class MainOperation extends Model
             $arrInsertChatThread    =   [
                 "IDCHATLIST"        =>  $idChatList,
                 "IDUSERADMIN"       =>  $idUserAdmin,
+                "IDCHATTHREADTYPE"  =>  $idChatThreadType,
                 "IDMESSAGE"         =>  $idMessage,
                 "CHATCONTENTHEADER" =>  $messageHeader,
                 "CHATCONTENTBODY"   =>  $messageBody,
@@ -217,6 +229,12 @@ class MainOperation extends Model
                 "STATUSREAD"        =>  $statusRead,
                 "ISTEMPLATE"        =>  $isTemplateMessage
             ];
+
+            if(!is_null($arrAdditionalThread) && is_array($arrAdditionalThread)){
+                if(isset($arrAdditionalThread['quotedMsgId'])) $arrInsertChatThread['IDMESSAGEQUOTED'] = $arrAdditionalThread['quotedMsgId'];
+                if(isset($arrAdditionalThread['caption'])) $arrInsertChatThread['CHATCAPTION'] = $arrAdditionalThread['caption'];
+                if(isset($arrAdditionalThread['isForwarded'])) $arrInsertChatThread['ISFORWARDED'] = $arrAdditionalThread['isForwarded'];
+            }
 
             $procInsertChatThread   =   $this->insertDataTable('t_chatthread', $arrInsertChatThread);
             if($procInsertChatThread['status']) {
@@ -302,10 +320,22 @@ class MainOperation extends Model
             $senderName             =   $detailChatListStats['SENDERNAME'];
             $chatThreadPosition     =   $detailChatListStats['CHATTHREADPOSITION'];
             $idUserAdmin            =   $detailChatListStats['IDUSERADMIN'];
+            $idChatThreadType       =   $detailChatListStats['IDCHATTHREADTYPE'];
+            $lastMessageChatList    =   $lastMessage;
+
+            switch($idChatThreadType){
+                case 2  : $lastMessageChatList = '<i class="ri-file-image-line"></i> Image'; break;
+                case 3  : $lastMessageChatList = '<i class="ri-article-line"></i> Document'; break;
+                case 4  : $lastMessageChatList = '<i class="ri-mic-2-line"></i> Audio'; break;
+                case 5  : $lastMessageChatList = '<i class="ri-film-line"></i> Video'; break;
+                case 6  : $lastMessageChatList = '<i class="ri-map-pin-line"></i> Location'; break;
+                default : $lastMessageChatList = $lastMessage; break;
+            }
+
             $arrUpdateChatList      =   [
                 "LASTSENDERFIRSTNAME"   =>  $senderFirstName,
                 "TOTALUNREADMESSAGE"    =>  $totalUnreadMessage,
-                "LASTMESSAGE"           =>  $lastMessage,
+                "LASTMESSAGE"           =>  $lastMessageChatList,
                 "DATETIMELASTMESSAGE"   =>  $dateTimeLastMessage,
                 "DATETIMELASTREPLY"     =>  $dateTimeLastReply
             ];
@@ -314,7 +344,14 @@ class MainOperation extends Model
             $idChatListEncoded      =   hashidEncode($idChatList, true);
             $idUserAdminEncoded     =   hashidEncode($idUserAdmin, true);
             $timeStampRTDB          =   $dateTimeLastMessage > $dateTimeLastReply ? $dateTimeLastMessage : $dateTimeLastReply;
-            $lastMessageTrim        =   strlen($lastMessage) > 30 ? substr($lastMessage, 0, 30)."..." : $lastMessage;
+
+            if(substr($lastMessageChatList, 0, 2)  != '<i'){
+                $lastMessageTrim    =   strlen($lastMessage) > 30 ? substr($lastMessage, 0, 30)."..." : $lastMessage;
+                $lastMessageTrim    =   mb_convert_encoding($lastMessageTrim, 'UTF-8', 'UTF-8');
+            } else {
+                $lastMessageTrim    =   $lastMessageChatList;
+            }
+
             $arrUpdateReferenceRTDB =   [
                 'contactInitial'    =>  $contactInitial,
                 'contactName'       =>  $contactName,
@@ -332,12 +369,16 @@ class MainOperation extends Model
                     'arrayChatThread'   =>  [
                         'IDMESSAGE'         =>  $detailChatListStats['IDMESSAGE'],
                         'IDCHATTHREAD'      =>  hashidEncode($detailChatListStats['IDCHATTHREAD'], true),
+                        'IDCHATTHREADTYPE'  =>  $detailChatListStats['IDCHATTHREADTYPE'],
+                        'IDMESSAGEQUOTED'   =>  $detailChatListStats['IDMESSAGEQUOTED'],
                         'CHATCONTENTHEADER' =>  $detailChatListStats['CHATCONTENTHEADER'],
                         'CHATCONTENTBODY'   =>  $detailChatListStats['LASTMESSAGE'],
                         'CHATCONTENTFOOTER' =>  $detailChatListStats['CHATCONTENTFOOTER'],
+                        'CHATCAPTION'       =>  $detailChatListStats['CHATCAPTION'],
                         'DATETIMESENT'      =>  null,
                         'DATETIMEDELIVERED' =>  null,
                         'DATETIMEREAD'      =>  null,
+                        'ISFORWARDED'       =>  $detailChatListStats['ISFORWARDED'],
                         'ISTEMPLATE'        =>  $detailChatListStats['ISTEMPLATE']
                     ]
                 ]
@@ -353,12 +394,13 @@ class MainOperation extends Model
     private function getDetailChatListStats($idChatList) : array
     {
         $this->select("SUM(IF(A.STATUSREAD = 0, 1, 0)) AS TOTALUNREADMESSAGE, AA.CHATCONTENTHEADER, AA.CHATCONTENTBODY AS LASTMESSAGE, AA. CHATCONTENTFOOTER,
-                MAX(A.DATETIMECHAT) AS DATETIMELASTMESSAGE, MAX(IF(A.IDUSERADMIN = 0, A.DATETIMECHAT, NULL)) AS DATETIMELASTREPLY, C.NAMEFULL,
+                AA.CHATCAPTION, MAX(A.DATETIMECHAT) AS DATETIMELASTMESSAGE, MAX(IF(A.IDUSERADMIN = 0, A.DATETIMECHAT, NULL)) AS DATETIMELASTREPLY, C.NAMEFULL,
                 IF(AA.IDUSERADMIN = 0, C.NAMEFULL, D.NAME) AS SENDERNAME, IF(AA.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION,
                 IF(AA.IDUSERADMIN = 0, SUBSTRING_INDEX(C.NAMEFULL, ' ', 1), SUBSTRING_INDEX(D.NAME, ' ', 1)) AS SENDERFIRSTNAME,
-                AA.IDMESSAGE, AA.IDCHATTHREAD, AA.ISTEMPLATE, AA.IDUSERADMIN");
+                AA.IDMESSAGE, AA.IDCHATTHREAD, AA.IDCHATTHREADTYPE, AA.IDMESSAGEQUOTED, AA.ISFORWARDED, AA.ISTEMPLATE, AA.IDUSERADMIN");
         $this->from('t_chatthread A', true);
-        $this->join("(SELECT IDCHATLIST, IDMESSAGE, IDCHATTHREAD, IDUSERADMIN, CHATCONTENTHEADER, CHATCONTENTBODY, CHATCONTENTFOOTER, ISTEMPLATE
+        $this->join("(SELECT IDCHATLIST, IDMESSAGE, IDCHATTHREAD, IDCHATTHREADTYPE, IDMESSAGEQUOTED, IDUSERADMIN, CHATCONTENTHEADER, CHATCONTENTBODY, CHATCONTENTFOOTER,
+                        CHATCAPTION, ISFORWARDED, ISTEMPLATE
                       FROM t_chatthread 
                       WHERE IDCHATLIST = '".$idChatList."' 
                       ORDER BY DATETIMECHAT DESC 
