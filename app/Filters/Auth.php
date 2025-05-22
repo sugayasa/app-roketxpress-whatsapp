@@ -53,16 +53,16 @@ class Auth implements FilterInterface
             $urlSegment2                =   $request->getUri()->getSegment(2);
 
             if($minutesDifference > MAX_INACTIVE_SESSION_MINUTES && $urlSegment2 != 'login'){
-                return throwResponseForbidden('Session ends, please log in to continue');
+                return throwResponseUnauthorized('Session ends, please log in to continue');
             }
 
             if(isset($arguments) && $arguments[0] == 'mustNotBeLoggedIn'){
                 if(isset($idUserAdmin) && $idUserAdmin != "" && intval($idUserAdmin) != 0){
-                    return throwResponseForbidden('You are not allowed to perform this action because your login session is already active');
+                    return throwResponseUnauthorized('You are not allowed to perform this action because your login session is already active');
                 }
             } else if(isset($arguments) && $arguments[0] == 'mustBeLoggedIn'){
                 if(!isset($idUserAdmin) || $idUserAdmin == "" || intval($idUserAdmin) == 0){
-                    return throwResponseForbidden('Please log in to perform this action');
+                    return throwResponseUnauthorized('Please log in to perform this action');
                 }
 
                 $hardwareID         =   $dataDecode->hardwareID;

@@ -52,10 +52,13 @@ class Webhook extends ResourceController
                 $isForwarded        =   $message->isForwarded ?? null;
                 $timeStamp          =   $message->time ?? null;
                 $phoneNumber        =   getPhoneNumberFromWhatsappAuthor($chatId);
-                $detailChatList     =   $mainOperation->getDetailChatListByPhoneNumber($phoneNumber);
+                $phoneNumberBase    =   $this->getDataPhoneNumberBase($phoneNumber);
+                $idCountry          =   $phoneNumberBase['idCountry'] ?? 0;
+                $phoneNumberBase    =   $phoneNumberBase['phoneNumberBase'] ?? $phoneNumber;
+                $detailChatList     =   $mainOperation->getDetailChatListByPhoneNumber($idCountry, $phoneNumberBase);
                 $idContact          =   $detailChatList['IDCONTACT'] ?? null;
                 $idChatThreadType   =   1;
-
+                
                 switch($messageType){
                     case 'image'    :   $idChatThreadType   =   2; break;
                     case 'document' :   $idChatThreadType   =   3; break;
@@ -74,12 +77,12 @@ class Webhook extends ResourceController
 
                 if(!$fromMe){
                     if(!$detailChatList || is_null($idContact)){
-                        $idCountry          =   $mainOperation->getCountryCodeByPhoneNumber($phoneNumber);
                         $arrInsertContact   =   [
                             'IDCOUNTRY'         =>  $idCountry,
                             'IDNAMETITLE'       =>  0,
                             'NAMEFULL'          =>  $senderName,
                             'PHONENUMBER'       =>  $phoneNumber,
+                            'PHONENUMBERBASE'   =>  $phoneNumberBase,
                             'EMAILS'            =>  '',
                             'ISVALIDWHATSAPP'   =>  1,
                             'DATETIMEINSERT'    =>  $dateTimeNow
@@ -162,6 +165,21 @@ class Webhook extends ResourceController
         if(LOG_WEBHOOK_MESSAGE) $this->insertWebhookLog($params);
         return throwResponseOK('Data saved successfully');
     }
+    
+    private function getDataPhoneNumberBase($phoneNumber)
+    {   
+        $mainOperation          =   new MainOperation();
+		$phoneNumber		    =	preg_replace('/[^0-9]/', '', $phoneNumber);
+        $dataCountryPhoneNumber =   $mainOperation->getDataCountryCodeByPhoneNumber($phoneNumber);
+        $idCountry              =   $dataCountryPhoneNumber['idCountry'] ?? 0;
+        $countryPhoneCode	    =   $dataCountryPhoneNumber['countryPhoneCode'] ?? '';
+		$phoneNumberBase	    =	substr($phoneNumber, strlen($countryPhoneCode)) * 1;
+		
+		return [
+            'idCountry'         =>  $idCountry,
+            'phoneNumberBase'   =>  $phoneNumberBase
+        ];
+	}
 
     private function insertWebhookLog($params)
     {

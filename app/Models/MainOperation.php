@@ -259,12 +259,13 @@ class MainOperation extends Model
         return $row['IDCHATLIST'];
     }
 
-    public function getDetailChatListByPhoneNumber($phoneNumber)
+    public function getDetailChatListByPhoneNumber($idCountry, $phoneNumberBase)
     {	
         $this->select("B.IDCHATLIST, A.IDCONTACT");
         $this->from('t_contact A', true);
         $this->join('t_chatlist AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
-        $this->where('A.PHONENUMBER', $phoneNumber);
+        $this->where('A.IDCOUNTRY', $idCountry);
+        $this->where('A.PHONENUMBERBASE', $phoneNumberBase);
         $this->limit(1);
 
         $row    =   $this->get()->getRowArray();
@@ -428,12 +429,13 @@ class MainOperation extends Model
 		return $row['TOTALUNREADCHAT'];
 	}
     
-    public function getCountryCodeByPhoneNumber($phoneNumber) : int
+    public function getDataCountryCodeByPhoneNumber($phoneNumber) : array
     {
         $arrDataCountryCode =	$this->getDataCountryCode();
 		$phoneNumber	    =	preg_replace('/[^0-9]/', '', $phoneNumber);
 		$whileProcess	    =	true;
 		$idCountryReturn    =	0;
+		$countryPhoneCode   =	'';
 		
         foreach($arrDataCountryCode as $keyDataCountryCode){
             $idCountry		=	$keyDataCountryCode->IDCOUNTRY;
@@ -442,8 +444,9 @@ class MainOperation extends Model
             
             if(substr($phoneNumber, 0, $countryCodeLen) == $countryCode){
                 if($whileProcess == true){
-                    $idCountryReturn=	$idCountry;
-                    $whileProcess	=	false;
+                    $idCountryReturn    =	$idCountry;
+                    $countryPhoneCode   =	$countryCode;
+                    $whileProcess	    =	false;
                     break;
                 }
             }
@@ -451,7 +454,10 @@ class MainOperation extends Model
             if(!$whileProcess) break;
         }
 		
-		return $idCountryReturn;
+		return [
+            'idCountry'         =>  $idCountryReturn,
+            'countryPhoneCode'  =>  $countryPhoneCode
+        ];
 	}
 
     public function getDataCountryCode() : array

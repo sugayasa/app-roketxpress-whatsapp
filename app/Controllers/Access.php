@@ -197,9 +197,11 @@ class Access extends ResourceController
             "email"             =>  $email
         );
         
+        $optionHelper   =   $this->getDataOption();
         return $this->setResponseFormat('json')
                     ->respond([
                         'tokenUpdate'   =>  $tokenUpdate,
+                        'optionHelper'  =>  $optionHelper,
                         'message'       =>  "Login successfully"
                     ]);		
     }
