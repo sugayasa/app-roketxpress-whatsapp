@@ -52,9 +52,11 @@ class Webhook extends ResourceController
                 $isForwarded        =   $message->isForwarded ?? null;
                 $timeStamp          =   $message->time ?? null;
                 $phoneNumber        =   getPhoneNumberFromWhatsappAuthor($chatId);
+                $phoneNumber        =	preg_replace('/[^0-9]/', '', $phoneNumber);
                 $phoneNumberBase    =   $this->getDataPhoneNumberBase($phoneNumber);
                 $idCountry          =   $phoneNumberBase['idCountry'] ?? 0;
                 $phoneNumberBase    =   $phoneNumberBase['phoneNumberBase'] ?? $phoneNumber;
+                $isZeroPrefixNumber =   $phoneNumberBase['isZeroPrefixNumber'] ?? false;
                 $detailChatList     =   $mainOperation->getDetailChatListByPhoneNumber($idCountry, $phoneNumberBase);
                 $idContact          =   $detailChatList['IDCONTACT'] ?? null;
                 $idChatThreadType   =   1;
@@ -78,14 +80,15 @@ class Webhook extends ResourceController
                 if(!$fromMe){
                     if(!$detailChatList || is_null($idContact)){
                         $arrInsertContact   =   [
-                            'IDCOUNTRY'         =>  $idCountry,
-                            'IDNAMETITLE'       =>  0,
-                            'NAMEFULL'          =>  $senderName,
-                            'PHONENUMBER'       =>  $phoneNumber,
-                            'PHONENUMBERBASE'   =>  $phoneNumberBase,
-                            'EMAILS'            =>  '',
-                            'ISVALIDWHATSAPP'   =>  1,
-                            'DATETIMEINSERT'    =>  $dateTimeNow
+                            'IDCOUNTRY'             =>  $idCountry,
+                            'IDNAMETITLE'           =>  0,
+                            'NAMEFULL'              =>  $senderName,
+                            'PHONENUMBER'           =>  $phoneNumber,
+                            'PHONENUMBERBASE'       =>  $phoneNumberBase,
+                            'PHONENUMBERZEROPREFIX' =>  $isZeroPrefixNumber,
+                            'EMAILS'                =>  '',
+                            'ISVALIDWHATSAPP'       =>  1,
+                            'DATETIMEINSERT'        =>  $dateTimeNow
                         ];
                         $procInsertContact   =   $mainOperation->insertDataTable('t_contact', $arrInsertContact);
                         if($procInsertContact['status']) $idContact = $procInsertContact['insertID'];
@@ -115,6 +118,8 @@ class Webhook extends ResourceController
                     $isMessageIdExist =   $cronModel->isMessageIdExist($messageId);
                     if(!$isMessageIdExist) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 1, $arrAdditionalThread);
                 }
+
+                if(!is_null($idContact)) $mainOperation->updateDataTable('t_contact', ['PHONENUMBERZEROPREFIX' => $isZeroPrefixNumber], ['IDCONTACT' => $idContact]);
             }
         } else if(!is_null($acks)) {
             foreach ($acks as $ack) {
@@ -169,15 +174,16 @@ class Webhook extends ResourceController
     private function getDataPhoneNumberBase($phoneNumber)
     {   
         $mainOperation          =   new MainOperation();
-		$phoneNumber		    =	preg_replace('/[^0-9]/', '', $phoneNumber);
         $dataCountryPhoneNumber =   $mainOperation->getDataCountryCodeByPhoneNumber($phoneNumber);
         $idCountry              =   $dataCountryPhoneNumber['idCountry'] ?? 0;
         $countryPhoneCode	    =   $dataCountryPhoneNumber['countryPhoneCode'] ?? '';
 		$phoneNumberBase	    =	substr($phoneNumber, strlen($countryPhoneCode)) * 1;
+        $isZeroPrefixNumber     =   substr($phoneNumberBase, 0, 1) == '0' ? true : false;
 		
 		return [
             'idCountry'         =>  $idCountry,
-            'phoneNumberBase'   =>  $phoneNumberBase
+            'phoneNumberBase'   =>  $phoneNumberBase,
+            'isZeroPrefixNumber'=>  $isZeroPrefixNumber
         ];
 	}
 

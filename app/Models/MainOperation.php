@@ -274,6 +274,19 @@ class MainOperation extends Model
         return $row;
     }
 
+    public function getActivePhoneNumber($idContact) : mixed
+    {	
+        $this->select("IF(A.PHONENUMBERZEROPREFIX = 1, CONCAT(B.COUNTRYPHONECODE, '0', A.PHONENUMBERBASE), CONCAT(B.COUNTRYPHONECODE, A.PHONENUMBERBASE)) AS PHONENUMBER");
+        $this->from('t_contact A', true);
+        $this->join('m_country AS B', 'A.IDCOUNTRY = B.IDCOUNTRY', 'LEFT');
+        $this->where('A.IDCONTACT', $idContact);
+        $this->limit(1);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return null;
+        return $row['PHONENUMBER'];
+    }
+
     public function getTotalUnreadMessageChat($idChatList)
     {	
         $this->select("COUNT(IDCHATTHREAD) AS TOTALUNREADMESSAGECHAT");

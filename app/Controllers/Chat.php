@@ -273,20 +273,21 @@ class Chat extends ResourceController
 
         if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
 
-        $idContact      =   $this->request->getVar('idContact');
-        $idContact      =   hashidDecode($idContact);
-        $phoneNumber    =   $this->request->getVar('phoneNumber');
-        $phoneNumber    =   preg_replace('/[^0-9]/', '', $phoneNumber);
-        $message        =   $this->request->getVar('message');
-        $sendResult     =   $oneMsgIO->sendMessage($phoneNumber, $message);
+        $idContact          =   $this->request->getVar('idContact');
+        $idContact          =   hashidDecode($idContact);
+        $phoneNumber        =   $this->request->getVar('phoneNumber');
+        $phoneNumber        =   preg_replace('/[^0-9]/', '', $phoneNumber);
+        $activePhoneNumber  =   $mainOperation->getActivePhoneNumber($idContact) ?? $phoneNumber;
+        $message            =   $this->request->getVar('message');
+        $sendResult         =   $oneMsgIO->sendMessage($activePhoneNumber, $message);
 
        if(!$sendResult['isSent']){
             $errorCode  =   $sendResult['errorCode'];
             $errorMsg   =   $sendResult['errorMsg'];
-            $mainOperation->insertLogFailedMessage(0, $idContact, $phoneNumber, [], $errorCode, $errorMsg);
+            $mainOperation->insertLogFailedMessage(0, $idContact, $activePhoneNumber, [], $errorCode, $errorMsg);
             switch($errorCode){
                 case 'E0001'    :   $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => -1], ['IDCONTACT' => $idContact]);
-                                    return throwResponseInternalServerError('Message delivery failed. The recipient`s number (+'.$phoneNumber.') is not registered as a valid WhatsApp user.', $sendResult);
+                                    return throwResponseInternalServerError('Message delivery failed. The recipient`s number (+'.$activePhoneNumber.') is not registered as a valid WhatsApp user.', $sendResult);
                 case 'E1012'    :   return throwResponseInternalServerError('Invalid message sent. Please remove tab, new line and more than 4 consecutive spaces in the message', $sendResult);
                 default         :   return throwResponseInternalServerError('Failed to send message. Please try again later', $sendResult);
             }
