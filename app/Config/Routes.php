@@ -64,6 +64,7 @@ $routes->post('chat/getDetailReservation', 'Chat::getDetailReservation', ['filte
 $routes->post('chat/saveReservation', 'Chat::saveReservation', ['filter' => 'auth:mustBeLoggedIn']);
 
 $routes->post('contact/getDataContact', 'Contact::getDataContact', ['filter' => 'auth:mustBeLoggedIn']);
+$routes->post('contact/saveContact', 'Contact::saveContact', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('contact/getDetailContact', 'Contact::getDetailContact', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('contact/sendTemplateMessage', 'Contact::sendTemplateMessage', ['filter' => 'auth:mustBeLoggedIn']);
 

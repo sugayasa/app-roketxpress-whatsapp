@@ -65,6 +65,19 @@ class UserAdmin extends ResourceController
     public function saveUserAdmin()
     {
         helper(['form']);
+        $rules          =   [
+            'idLevelUserAdmin'  =>  ['label' => 'User Admin Level', 'rules' => 'required|alpha_numeric'],
+            'name'              =>  ['label' => 'Name', 'rules' => 'required|alpha_numeric_space'],
+            'email'             =>  ['label' => 'Email', 'rules' => 'required|valid_email|is_unique[m_useradmin.EMAIL]'],
+            'username'          =>  ['label' => 'username', 'rules' => 'required|alpha_numeric|min_length[5]|is_unique[m_useradmin.USERNAME]'],
+        ];
+
+        $messages   =   [
+            'email'     =>  ['is_unique' => 'This email address is already registered, please enter another email address'],
+            'username'  =>  ['is_unique' => 'This username is already taken, please choose different username']
+        ];
+        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+
         $idUserAdmin    =   $this->request->getVar('idUserAdmin');
         $idUserAdmin    =   $idUserAdmin != "" ? hashidDecode($idUserAdmin) : 0;
 
@@ -74,19 +87,10 @@ class UserAdmin extends ResourceController
     private function insertDataUserAdmin()
     {
         $rules          =   [
-            'idLevelUserAdmin'  =>  ['label' => 'User Admin Level', 'rules' => 'required|alpha_numeric'],
-            'name'              =>  ['label' => 'Name', 'rules' => 'required|alpha_numeric_space'],
-            'email'             =>  ['label' => 'Email', 'rules' => 'required|valid_email|is_unique[m_useradmin.EMAIL]'],
-            'username'          =>  ['label' => 'username', 'rules' => 'required|alpha_numeric|min_length[5]|is_unique[m_useradmin.USERNAME]'],
             'newPassword'       =>  ['label' => 'New Password', 'rules' => 'required|alpha_numeric|min_length[6]'],
             'repeatPassword'    =>  ['label' => 'Repeat Password', 'rules' => 'required|alpha_numeric|min_length[6]']
         ];
-
-        $messages   =   [
-            'email'     =>  ['is_unique' => 'This email address is already registered, please enter another email address'],
-            'username'  =>  ['is_unique' => 'This username is already taken, please choose different username']
-        ];
-        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+        if(!$this->validate($rules)) return $this->fail($this->validator->getErrors());
 
         $idLevelUserAdmin   =   $this->request->getVar('idLevelUserAdmin');
         $idLevelUserAdmin   =   hashidDecode($idLevelUserAdmin);
@@ -124,20 +128,14 @@ class UserAdmin extends ResourceController
     {
         helper(['form']);
         $rules          =   [
-            'idUserAdmin'       =>  ['label' => 'ID User Admin', 'rules' => 'required|alpha_numeric'],
-            'idLevelUserAdmin'  =>  ['label' => 'User Admin Level', 'rules' => 'required|alpha_numeric'],
-            'name'              =>  ['label' => 'Name', 'rules' => 'required|alpha_numeric_space'],
-            'email'             =>  ['label' => 'Email', 'rules' => 'required|valid_email|is_unique[m_useradmin.EMAIL, IDUSERADMIN, '.$idUserAdmin.']'],
-            'username'          =>  ['label' => 'username', 'rules' => 'required|alpha_numeric|min_length[5]|is_unique[m_useradmin.USERNAME, IDUSERADMIN, '.$idUserAdmin.']']
+            'idUserAdmin'       =>  ['label' => 'ID User Admin', 'rules' => 'required|alpha_numeric']
         ];
 
         $messages   =   [
             'idUserAdmin'   => [
                 'required'      => 'Invalid data sent',
                 'alpha_numeric' => 'Invalid data sent'
-            ],
-            'email'     =>  ['is_unique' => 'This email address is already registered, please enter another email address'],
-            'username'  =>  ['is_unique' => 'This username is already taken, please choose different username']
+            ]
         ];
         if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
 

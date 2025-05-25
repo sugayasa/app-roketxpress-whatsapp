@@ -146,6 +146,8 @@ class Contact extends ResourceController
         }
 
         $detailContact['IDCHATLIST']    =   hashidEncode($detailContact['IDCHATLIST'], true);
+        $detailContact['IDCOUNTRY']     =   hashidEncode($detailContact['IDCOUNTRY']);
+        $detailContact['IDNAMETITLE']   =   hashidEncode($detailContact['IDNAMETITLE']);
         return $this->setResponseFormat('json')
                     ->respond([
                         "detailContact"         =>  $detailContact,
@@ -232,9 +234,105 @@ class Contact extends ResourceController
             $listOfTemplate             =   $oneMsgIO->getListOfTemplates();
             $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateName, $listOfTemplate, $arrTemplateParameters);
 
-            if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin);
+            if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin, ['forceUpdate' => true]);
+            else return throwResponseInternalServerError('Failed to generate message from template. Please try again later');
             $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => 1], ['IDCONTACT' => $idContact]);
             return throwResponseOK('Message has been sent');
         }
     }
+
+    public function saveContact()
+    {
+        helper(['form']);
+        $rules      =   [
+            'editorContact-nameTitle'   =>  ['label' => 'Name Title', 'rules' => 'required|alpha_numeric'],
+            'editorContact-name'        =>  ['label' => 'Name', 'rules' => 'required|alpha_numeric_space|min_length[4]'],
+            'editorContact-country'     =>  ['label' => 'Country Code', 'rules' => 'required|alpha_numeric'],
+            'editorContact-phoneNumber' =>  ['label' => 'Phone Number', 'rules' => 'required|numeric|min_length[6]'],
+            'editorContact-email'       =>  ['label' => 'Email', 'rules' => 'permit_empty|valid_email']
+        ];
+
+        $messages   =   [
+            'editorContact-nameTitle'   =>  ['alpha_numeric' => 'Invalid data sent'],
+            'editorContact-country'     =>  ['alpha_numeric' => 'Invalid data sent']
+        ];
+
+        if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
+        $idContact          =   $this->request->getVar('editorContact-idContact');
+        $idContact          =   $idContact != "" ? hashidDecode($idContact) : 0;
+        $idNameTitle        =   $this->request->getVar('editorContact-nameTitle');
+        $idNameTitle        =   hashidDecode($idNameTitle);
+        $idCountry          =   $this->request->getVar('editorContact-country');
+        $idCountry          =   hashidDecode($idCountry);
+        $name               =   $this->request->getVar('editorContact-name');
+        $phoneNumber        =   $this->request->getVar('editorContact-phoneNumber');
+        $email              =   $this->request->getVar('editorContact-email');
+        $dataPhoneNumber    =   $this->getDataPhoneNumber($idCountry, $phoneNumber);
+        $phoneNumberBase    =   $dataPhoneNumber['phoneNumberBase'];
+        $phoneNumber        =   $dataPhoneNumber['phoneNumber'];
+        $messageResponse    =   $idChatList =   '';
+        $dateTimeLastReply  =   0;
+        $arrInsertUpdateData=   [
+            'IDCOUNTRY'         =>  $idCountry,
+            'IDNAMETITLE'       =>  $idNameTitle,
+            'NAMEFULL'          =>  $name,
+            'PHONENUMBER'       =>  $phoneNumber,
+            'PHONENUMBERBASE'   =>  $phoneNumberBase,
+            'EMAILS'            =>  $email,
+            'DATETIMEINSERT'    =>  $this->currentDateTime
+        ];
+
+        $mainOperation  =   new MainOperation();
+        if($idContact == 0){
+            $procInsertData =   $mainOperation->insertDataTable('t_contact', $arrInsertUpdateData);
+
+            if(!$procInsertData['status']) return switchMySQLErrorCode($procInsertData['errCode']);
+            $idContact      =   $procInsertData['insertID'];
+            $messageResponse=   'New contact data has been added';
+        } else {
+            try{
+                $mainOperation->updateDataTable('t_contact', $arrInsertUpdateData, ['IDCONTACT' => $idContact]);
+                $contactModel       =   new ContactModel();
+                $detailContact      =   $contactModel->getDetailContact($idContact);
+                $idChatList         =   $detailContact['IDCHATLIST'] != '' ? hashidEncode($detailContact['IDCHATLIST']) : '';
+                $dateTimeLastReply  =   $detailContact['TIMESTAMPLASTREPLY'];
+                $messageResponse    =   'Contact data has been updated';
+            } catch (\Throwable $th) {
+                return throwResponseNotAcceptable('Internal database script error');
+            }
+        }
+
+        return throwResponseOK(
+            $messageResponse,
+            [
+                'detailContact' =>  [
+                    'IDCONTACT'         =>  hashidEncode($idContact),
+                    'IDCHATLIST'        =>  $idChatList,
+                    'DATETIMELASTREPLY' =>  $dateTimeLastReply,
+                    'NAMEALPHASEPARATOR'=>  substr($name, 0, 1),
+                    'NAMEFULL'          =>  $name,
+                    'PHONENUMBER'       =>  $phoneNumber,
+                    'EMAILS'            =>  $email
+                ]
+            ]
+        );
+    }
+    
+    private function getDataPhoneNumber($idCountry, $phoneNumber)
+    {   
+        $mainOperation      =   new MainOperation();
+        $dataCountryCode    =   $mainOperation->getDataCountryCode($idCountry);
+        $phoneNumberBase    =   $phoneNumber;
+
+        if(count($dataCountryCode) > 0){
+            $countryPhoneCode   =   $dataCountryCode[0]->COUNTRYPHONECODE;
+            $phoneNumberBase    =   substr($phoneNumber, 0, strlen($countryPhoneCode)) == $countryPhoneCode ? substr($phoneNumber, strlen($countryPhoneCode)) * 1 : $phoneNumber * 1;
+            $phoneNumber        =   $countryPhoneCode.$phoneNumberBase;
+        }
+		
+		return [
+            'phoneNumberBase'   =>  $phoneNumberBase,
+            'phoneNumber'       =>  $phoneNumber
+        ];
+	}
 }

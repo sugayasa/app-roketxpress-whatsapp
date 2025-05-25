@@ -86,7 +86,7 @@ class Cron extends BaseController
                             $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateCode, $listOfTemplate, $arrParametersTemplate);
 
                             if($messageTemplateGenerated) {
-                                $idChatThread   =   $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, 1);
+                                $idChatThread   =   $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, 1, ['forceUpdate' => true]);
                             
                                 $arrUpdateCron  =   [
                                     "IDCHATTHREAD"  =>  $idChatThread,

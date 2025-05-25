@@ -97,7 +97,7 @@ class ContactModel extends Model
     public function getDetailContact($idContact)
     {	
         $this->select(
-            "A.NAMEFULL, A.PHONENUMBER, IFNULL(B.COUNTRYNAME, '-') AS COUNTRYNAME, IFNULL(C.CONTINENTNAME, '-') AS CONTINENTNAME,
+            "A.NAMEFULL, A.PHONENUMBER, A.PHONENUMBERBASE, IFNULL(B.COUNTRYNAME, '-') AS COUNTRYNAME, IFNULL(C.CONTINENTNAME, '-') AS CONTINENTNAME,
             IF(A.EMAILS = '' OR A.EMAILS IS NULL, '-', A.EMAILS) AS EMAILS, IFNULL(F.DATETIMELASTREPLY, '') AS DATETIMELASTREPLY, '' AS DATETIMEINTERVALINFO,
             COUNT(DISTINCT(D.IDRESERVATION)) AS TOTALRESERVATION,
             CONCAT(
@@ -109,7 +109,7 @@ class ContactModel extends Model
                         )
                     ),
                 ']'
-            ) AS ARRAYSOURCE, A.ISVALIDWHATSAPP, F.DATETIMELASTREPLY AS TIMESTAMPLASTREPLY, F.IDCHATLIST"
+            ) AS ARRAYSOURCE, A.ISVALIDWHATSAPP, F.DATETIMELASTREPLY AS TIMESTAMPLASTREPLY, F.IDCHATLIST, A.IDCOUNTRY, A.IDNAMETITLE"
         );
         $this->from('t_contact A', true);
         $this->join('m_country AS B', 'A.IDCOUNTRY = B.IDCOUNTRY', 'LEFT');
@@ -125,16 +125,21 @@ class ContactModel extends Model
 
         if(!is_null($result)) return $result;
         return [
-            "NAMEFULL"              =>  "-",
-            "PHONENUMBER"           =>  "-",
-            "COUNTRYNAME"           =>  "-",
-            "CONTINENTNAME"         =>  "-",
-            "EMAILS"                =>  "-",
-            "DATETIMELASTREPLY"     =>  '',
-            "DATETIMEINTERVALINFO"  =>  '',
-            "TOTALRESERVATION"      =>  0,
-            "ARRAYSOURCE"           =>  "[]",
-            "ISVALIDWHATSAPP"       =>  -1
+            'NAMEFULL'              =>  '-',
+            'PHONENUMBER'           =>  '-',
+            'PHONENUMBERBASE'       =>  '',
+            'COUNTRYNAME'           =>  '-',
+            'CONTINENTNAME'         =>  '-',
+            'EMAILS'                =>  '-',
+            'DATETIMELASTREPLY'     =>  '',
+            'DATETIMEINTERVALINFO'  =>  '',
+            'TOTALRESERVATION'      =>  0,
+            'ARRAYSOURCE'           =>  '[]',
+            'ISVALIDWHATSAPP'       =>  -1,
+            'TIMESTAMPLASTREPLY'    =>  0,
+            'IDCHATLIST'            =>  '',
+            'IDCOUNTRY'             =>  '',
+            'IDNAMETITLE'           =>  ''
         ];
     }
 

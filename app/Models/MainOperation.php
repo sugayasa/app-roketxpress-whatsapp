@@ -184,12 +184,13 @@ class MainOperation extends Model
 
     public function insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageGenerated, $idUserAdmin = 1, $arrAdditionalThread = null) : int
     {
-        $idChatList             =   $this->getIdChatList($idContact);
-        $idChatThreadType       =   isset($arrAdditionalThread['idChatThreadType']) && is_numeric($arrAdditionalThread['idChatThreadType']) ? $arrAdditionalThread['idChatThreadType'] : 1;
-        $messageHeader          =   isset($messageGenerated['header']) ? $messageGenerated['header'] : '';
-        $messageBody            =   isset($messageGenerated['body']) ? $messageGenerated['body'] : $messageGenerated;
-        $messageFooter          =   isset($messageGenerated['footer']) ? $messageGenerated['footer'] : '';
-        $isTemplateMessage      =   isset($messageGenerated['body']) ? 1 : 0;
+        $idChatList         =   $this->getIdChatList($idContact);
+        $idChatThreadType   =   isset($arrAdditionalThread['idChatThreadType']) && is_numeric($arrAdditionalThread['idChatThreadType']) ? $arrAdditionalThread['idChatThreadType'] : 1;
+        $forceUpdate        =   isset($arrAdditionalThread['forceUpdate']) ? $arrAdditionalThread['forceUpdate'] : false;
+        $messageHeader      =   isset($messageGenerated['header']) ? $messageGenerated['header'] : '';
+        $messageBody        =   isset($messageGenerated['body']) ? $messageGenerated['body'] : $messageGenerated;
+        $messageFooter      =   isset($messageGenerated['footer']) ? $messageGenerated['footer'] : '';
+        $isTemplateMessage  =   isset($messageGenerated['body']) ? 1 : 0;
 
         switch($idChatThreadType){
             case 2  : $lastMessageChatList = '<i class="ri-file-image-line"></i> Image'; break;
@@ -236,10 +237,21 @@ class MainOperation extends Model
                 if(isset($arrAdditionalThread['isForwarded'])) $arrInsertChatThread['ISFORWARDED'] = $arrAdditionalThread['isForwarded'];
             }
 
-            $procInsertChatThread   =   $this->insertDataTable('t_chatthread', $arrInsertChatThread);
-            if($procInsertChatThread['status']) {
+            $detailChatThread   =   $this->getDetailThreadByMessageId($idMessage);
+            if(!$detailChatThread) {
+                $procInsertChatThread   =   $this->insertDataTable('t_chatthread', $arrInsertChatThread);
+                if($procInsertChatThread['status']) {
+                    $this->updateChatListAndRTDBStats($idChatList, true);
+                    return $procInsertChatThread['insertID'];
+                }
+            } else {
+                if($forceUpdate){
+                    $idChatThread   =   $detailChatThread['IDCHATTHREAD'];
+                    $this->updateDataTable('t_chatthread', $arrInsertChatThread, ['IDCHATTHREAD' => $idChatThread]);
+                }
+                
                 $this->updateChatListAndRTDBStats($idChatList, true);
-                return $procInsertChatThread['insertID'];
+                return $idChatThread;
             }
         }
 
@@ -257,6 +269,19 @@ class MainOperation extends Model
 
         if(is_null($row)) return false;
         return $row['IDCHATLIST'];
+    }
+
+    public function getDetailThreadByMessageId($idMessage)
+    {	
+        $this->select("IDCHATTHREAD");
+        $this->from('t_chatthread', true);
+        $this->where('IDMESSAGE', $idMessage);
+        $this->limit(1);
+
+        $row    =   $this->get()->getRowArray();
+
+        if(is_null($row)) return false;
+        return $row;
     }
 
     public function getDetailChatListByPhoneNumber($idCountry, $phoneNumberBase)
@@ -473,10 +498,11 @@ class MainOperation extends Model
         ];
 	}
 
-    public function getDataCountryCode() : array
+    public function getDataCountryCode($idCountry = false) : array
     {
         $this->select("IDCOUNTRY, COUNTRYPHONECODE");
         $this->from('m_country', true);
+        if($idCountry) $this->where('IDCOUNTRY', $idCountry);
         $this->orderBy('LENGTH(COUNTRYPHONECODE) DESC');
 
         $result =   $this->get()->getResultObject();

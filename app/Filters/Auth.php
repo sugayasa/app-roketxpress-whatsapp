@@ -7,6 +7,7 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\I18n\Time;
+use App\Models\MainOperation;
 use App\Models\AccessModel;
 
 #[AllowDynamicProperties]
@@ -51,6 +52,18 @@ class Auth implements FilterInterface
             $tokenTimeCreate            =   Time::parse($tokenTimeCreate, APP_TIMEZONE);
             $minutesDifference          =   $tokenTimeCreate->difference(Time::now(APP_TIMEZONE))->getMinutes();
             $urlSegment2                =   $request->getUri()->getSegment(2);
+
+            if(LOG_USER_REQUEST){
+                $mainOperation      =   new MainOperation();
+                $arrInsertLogData   =   [
+                    'IDUSERADMIN'   => $idUserAdmin,
+                    'URLROUTE'      => $request->getUri(),
+                    'TOKENDATA'     => json_encode($dataDecode),
+                    'PARAMETERDATA' => json_encode($request->getBody()),
+                    'DATETIMELOG'   => $request->currentDateTime
+                ];
+                $mainOperation->insertDataTable('log_datasend', $arrInsertLogData);
+            }
 
             if($minutesDifference > MAX_INACTIVE_SESSION_MINUTES && $urlSegment2 != 'login'){
                 return throwResponseUnauthorized('Session ends, please log in to continue');

@@ -60,7 +60,7 @@ class View extends ResourceController
     {
         $contentPills   =   view(
                                 'ContentPills/contact',
-                                [],
+                                ['defaultCountryCode'=>  hashidEncode(96)],
                                 ['debug' => false]
                             );
         $contentMain    =   view(

@@ -21,7 +21,8 @@
                     <p class="small mb-3 d-flex">
                         <i id="detailContact-iconSession" class="font-size-17 text-sucess ri-circle-fill" data-timeStampLastReply="0"></i>
                         <span class="font-size-15 text-muted mx-2" id="detailContact-badgeSession">| -</span>
-                        <button type="button" id="detailContact-btnSendMessage" class="btn btn-sm btn-success ms-auto"><span><i class="ri-chat-1-line me-1"></i>Send Message</span></button>
+                        <button type="button" id="detailContact-btnEditContact" class="btn btn-sm btn-primary ms-auto me-2" data-bs-toggle="modal" data-bs-target="#modal-editorContact"><span><i class="ri-edit-line me-1"></i>Edit Contact</span></button>
+                        <button type="button" id="detailContact-btnSendMessage" class="btn btn-sm btn-success"><span><i class="ri-chat-1-line me-1"></i>Send Message</span></button>
                     </p>
                     <div class="alert alert-warning d-flex align-items-center d-none" role="alert" id="detailContact-invalidWhatsAppAcountAlert">
                         <i class="ri-error-warning-line me-2"></i>

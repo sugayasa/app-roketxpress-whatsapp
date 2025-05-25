@@ -115,6 +115,24 @@ class AccessModel extends Model
         return $this->get()->getResultObject();
     }
 
+    public function getDataNameTitle()
+    {
+        $this->select("IDNAMETITLE AS ID, CONCAT('(', NAMETITLE, ') ', NAMETITLEFULL) AS VALUE");
+        $this->from('m_nametitle', true);
+        $this->orderBy('IDNAMETITLE');
+
+        return $this->get()->getResultObject();
+    }
+
+    public function getDataCountryPhoneCode()
+    {
+        $this->select("IDCOUNTRY AS ID, CONCAT(COUNTRYNAME, ' (+', COUNTRYPHONECODE, ')') AS VALUE");
+        $this->from('m_country', true);
+        $this->orderBy('COUNTRYNAME');
+
+        return $this->get()->getResultObject();
+    }
+
     public function setLastActivityUserAdmin($idUserAdmin, $datetimeActivity)
     {
         $this->set('DATETIMEACTIVITY', $datetimeActivity);

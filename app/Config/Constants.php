@@ -150,6 +150,7 @@ defined('APP_NAME_FORMAL')                              || define('APP_NAME_FORM
 defined('APP_TIMEZONE')                                 || define('APP_TIMEZONE', $_ENV['APP_TIMEZONE'] ?: 'Asia/Jakarta');
 defined('APP_MAIN_DATABASE_NAME')                       || define('APP_MAIN_DATABASE_NAME', $_ENV['APP_MAIN_DATABASE_NAME'] ?: 'db_default');
 defined('MAX_INACTIVE_SESSION_MINUTES')                 || define('MAX_INACTIVE_SESSION_MINUTES', $_ENV['MAX_INACTIVE_SESSION_MINUTES'] ?: 60);
+defined('LOG_USER_REQUEST')                             || define('LOG_USER_REQUEST', $_ENV['LOG_USER_REQUEST'] ?: false);
 defined('LOG_WEBHOOK_MESSAGE')                          || define('LOG_WEBHOOK_MESSAGE', $_ENV['LOG_WEBHOOK_MESSAGE'] ?: false);
 
 defined('PRODUCTION_URL')						        || define('PRODUCTION_URL', $productionURL);

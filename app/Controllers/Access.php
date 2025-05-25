@@ -301,11 +301,15 @@ class Access extends ResourceController
         $dataAllAreaType        =   encodeDatabaseObjectResultKey($accessModel->getDataAllAreaType(), 'ID');
         $dataUserAdminLevel     =   encodeDatabaseObjectResultKey($accessModel->getDataUserAdminLevel(), 'ID');
         $dataUserAdminLevelMenu =   encodeDatabaseObjectResultKey($accessModel->getDataUserAdminLevelMenu(), 'ID');
+        $dataNameTitle          =   encodeDatabaseObjectResultKey($accessModel->getDataNameTitle(), 'ID');
+        $dataCountryPhoneCode   =   encodeDatabaseObjectResultKey($accessModel->getDataCountryPhoneCode(), 'ID');
 
         return [
             "dataAllAreaType"       =>  $dataAllAreaType,
             "dataUserAdminLevel"    =>  $dataUserAdminLevel,
             "dataUserAdminLevelMenu"=>  $dataUserAdminLevelMenu,
+            "dataNameTitle"         =>  $dataNameTitle,
+            "dataCountryPhoneCode"  =>  $dataCountryPhoneCode,
             "optionHours"	        =>  OPTION_HOURS,
             "optionMinutes"         =>  OPTION_MINUTES,
             "optionMinuteInterval"	=>  OPTION_MINUTEINTERVAL,
