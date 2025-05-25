@@ -83,7 +83,7 @@ class Auth implements FilterInterface
                 $isValidHardwareID  =   $accessModel->checkHardwareIDUserAdmin($idUserAdmin, $hardwareID);
 
                 if(!$isValidHardwareID){
-                    return throwResponseUnauthorized('[E-AUTH-001.1.2] Your hardware ID has changed, please log in to continue');
+                    return throwResponseUnauthorized('[E-AUTH-001.1.2] Your hardware ID has changed, please log in to continue', ['idUserAdmin' => $idUserAdmin, 'hardwareID' => $hardwareID]);
                 }
 
                 $accessModel->setLastActivityUserAdmin($idUserAdmin, $request->currentDateTime);

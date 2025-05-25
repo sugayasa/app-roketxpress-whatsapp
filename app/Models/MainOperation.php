@@ -245,11 +245,9 @@ class MainOperation extends Model
                     return $procInsertChatThread['insertID'];
                 }
             } else {
-                if($forceUpdate){
-                    $idChatThread   =   $detailChatThread['IDCHATTHREAD'];
-                    $this->updateDataTable('t_chatthread', $arrInsertChatThread, ['IDCHATTHREAD' => $idChatThread]);
-                }
-                
+                $idChatThread   =   $detailChatThread['IDCHATTHREAD'];
+                if($forceUpdate) $this->updateDataTable('t_chatthread', $arrInsertChatThread, ['IDCHATTHREAD' => $idChatThread]);
+
                 $this->updateChatListAndRTDBStats($idChatList, true);
                 return $idChatThread;
             }
