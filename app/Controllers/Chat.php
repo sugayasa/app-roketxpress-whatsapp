@@ -41,11 +41,19 @@ class Chat extends ResourceController
         $chatModel          =   new ChatModel();
         $page               =   $this->request->getVar('page');
         $searchKeyword      =   $this->request->getVar('searchKeyword');
+        $arrReservationType =   $this->request->getVar('arrReservationType');
         $chatType           =   $this->request->getVar('chatType');
         $idContact          =   $this->request->getVar('idContact');
         $idContact          =   isset($idContact) && !is_null($idContact) && $idContact != '' ? hashidDecode($idContact) : null;
         $dataPerPage        =   50;
-        $dataChatList       =   $chatModel->getDataChatList($page, $dataPerPage, $searchKeyword, $chatType, $idContact);
+
+        if(is_array($arrReservationType) && count($arrReservationType) > 0){
+            $arrReservationType =   array_map(function($item){
+                return hashidDecode($item, true);
+            }, $arrReservationType);
+        }
+
+        $dataChatList       =   $chatModel->getDataChatList($page, $dataPerPage, $searchKeyword, $chatType, $idContact, $arrReservationType);
         $totalData          =   0;
 
         if($dataChatList && count($dataChatList) > 0) {
@@ -53,7 +61,8 @@ class Chat extends ResourceController
             $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
 
             foreach($dataChatList as $keyChatList){
-                $lastMessage    =   $keyChatList->LASTMESSAGE;
+                $lastMessage            =   $keyChatList->LASTMESSAGE;
+                $arrIdReservationType   =   $keyChatList->ARRIDRESERVATIONTYPE;
 
                 if(substr($lastMessage, 0, 2)  != '<i'){
                     $lastMessage    =   strlen($lastMessage) > 30 ? substr($lastMessage, 0, 30)."..." : $lastMessage;
@@ -66,6 +75,19 @@ class Chat extends ResourceController
 
                 $keyChatList->DATETIMELASTMESSAGESTR=   getDateTimeIntervalStringInfo($lastMessageDateTimeStr, 1);
                 $keyChatList->LASTMESSAGE           =   $lastMessage;
+
+                if($arrIdReservationType != ""){
+                    $arrIdReservationType       =   explode(',', $arrIdReservationType);
+                    $arrIdReservationTypeReturn =   [];
+
+                    foreach($arrIdReservationType as $idReservationType){
+                        $arrIdReservationTypeReturn[]   =  hashidEncode($idReservationType, true);
+                    }
+
+                    $keyChatList->ARRIDRESERVATIONTYPE  =   $arrIdReservationTypeReturn;
+                } else {
+                    $keyChatList->ARRIDRESERVATIONTYPE  =   [];
+                }
                 $totalData++;
             }
 

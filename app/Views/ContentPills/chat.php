@@ -3,7 +3,7 @@
         <div class="px-3 pt-3">
             <h4 class="mb-3">Chats</h4>
             <div class="mb-3 search-box chat-search-box">
-                <div class="input-group bg-light input-group-lg border rounded-3 mb-3">
+                <div class="input-group bg-light input-group-lg border rounded-3 mb-2">
                     <div class="input-group-prepend">
                         <button class="btn btn-link text-decoration-none text-muted pe-1 ps-3" type="button">
                             <i class="ri-search-line search-icon font-size-14"></i>
@@ -18,12 +18,13 @@
                         </button>
                     </div>
                 </div>
+                <div class="input-group mb-2" id="filter-reservationTypeContainer"></div>
                 <ul id="chatStatusNav" class="nav nav-pills border-bottom pb-2" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" type="button" id="pills-home-tab" data-chatType='1' data-bs-toggle="pill" role="tab" aria-selected="true">All</button>
+                        <button class="nav-link font-size-12 py-1 active" type="button" id="pills-home-tab" data-chatType='1' data-bs-toggle="pill" role="tab" aria-selected="true">All</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" type="button" id="pills-home-tab" data-chatType='2' data-bs-toggle="pill" role="tab" aria-selected="false">Unread</button>
+                        <button class="nav-link font-size-12 py-1" type="button" id="pills-home-tab" data-chatType='2' data-bs-toggle="pill" role="tab" aria-selected="false">Unread</button>
                     </li>
                 </ul>                
             </div>

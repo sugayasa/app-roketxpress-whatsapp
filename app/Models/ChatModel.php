@@ -39,13 +39,16 @@ class ChatModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    public function getDataChatList($page, $dataPerPage = 25, $searchKeyword, $chatType, $idContact = null)
+    public function getDataChatList($page, $dataPerPage = 25, $searchKeyword, $chatType, $idContact = null, $arrReservationType = [])
     {	
         $pageOffset     =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, A.LASTSENDERFIRSTNAME, B.NAMEFULL, A.TOTALUNREADMESSAGE,
-                A.LASTMESSAGE, A.DATETIMELASTMESSAGE, '' AS DATETIMELASTMESSAGESTR, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY");
+                A.LASTMESSAGE, A.DATETIMELASTMESSAGE, '' AS DATETIMELASTMESSAGESTR, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY,
+                IFNULL(GROUP_CONCAT(DISTINCT C.IDRESERVATIONTYPE ORDER BY C.IDRESERVATIONTYPE), '') AS ARRIDRESERVATIONTYPE");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.t_reservation AS C', 'A.IDCONTACT = C.IDCONTACT', 'LEFT');
+
         if(isset($searchKeyword) && !is_null($searchKeyword) && $searchKeyword != '' && ($idContact == null || $idContact == '')) {
             $this->groupStart();
             $this->like('B.NAMEFULL', $searchKeyword, 'both')
@@ -63,11 +66,19 @@ class ChatModel extends Model
         if(isset($idContact) && !is_null($idContact) && $idContact != '') {
             $this->where('A.IDCONTACT = ', $idContact);
         }
+
+        $this->groupBy('A.IDCHATLIST');
+        $this->having('ARRIDRESERVATIONTYPE', '');
+        if(is_array($arrReservationType) && count($arrReservationType) > 0){
+            foreach($arrReservationType as $idReservationType){
+                $this->orHaving('ARRIDRESERVATIONTYPE LIKE', '%'.(string) $idReservationType.'%');
+            }
+        }
+
         $this->orderBy('A.DATETIMELASTMESSAGE DESC');
         $this->limit($dataPerPage, $pageOffset);
 
         $result =   $this->get()->getResultObject();
-
         if(is_null($result)) return false;
         return $result;
     }
@@ -90,7 +101,7 @@ class ChatModel extends Model
         return $row;
     }
 
-    public function getListChatThread($idChatList, $page, $dataPerPage = 10)
+    public function getListChatThread($idChatList, $page, $dataPerPage = 20)
     {	
         $pageOffset =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATTHREAD, A.IDMESSAGE, A.IDMESSAGEQUOTED, A.IDCHATTHREADTYPE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME,

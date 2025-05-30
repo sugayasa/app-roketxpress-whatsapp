@@ -242,6 +242,7 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 </script>
 <script>
 	var intervalId;
+	var arrClassColor	=	['info', 'warning', 'success', 'light', 'primary', 'secondary', 'danger', 'dark'];
 	var timezoneOffset	=	moment.tz.guess(),
 		dateToday		=	moment().format('DD-MM-YYYY'),
 		url				=	"<?=BASE_URL_ASSETS_JS?>app.js?<?=date('YmdHis')?>";

@@ -54,9 +54,10 @@ class AccessModel extends Model
 
     public function getUserAdminDetail($idUserAdmin)
     {
-        $this->select('A.HARDWAREID, A.IDUSERADMINLEVEL, A.NAME, A.USERNAME, A.EMAIL, B.LEVELNAME');
+        $this->select('A.HARDWAREID, A.IDUSERADMINLEVEL, C.IDRESERVATIONTYPE, A.NAME, A.USERNAME, A.EMAIL, B.LEVELNAME');
         $this->from('m_useradmin AS A', true);
         $this->join('m_useradminlevel AS B', 'A.IDUSERADMINLEVEL = B.IDUSERADMINLEVEL', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_useradmin AS C', 'A.IDUSERADMININTERNAL = C.IDUSERADMIN', 'LEFT');
         $this->where('A.IDUSERADMIN', $idUserAdmin);
 
         return $this->get()->getRowArray();
@@ -82,6 +83,15 @@ class AccessModel extends Model
         $this->groupBy('B.GROUPNAME');
         $this->having('COUNT(B.IDMENUADMIN) > ', 1);
         $this->orderBy('B.ORDERGROUP');
+
+        return $this->get()->getResultObject();
+    }
+
+    public function getDataReservationType()
+    {
+        $this->select("IDRESERVATIONTYPE AS ID, RESERVATIONTYPE AS VALUE");
+        $this->from(APP_MAIN_DATABASE_NAME.'.m_reservationtype', true);
+        $this->orderBy('IDRESERVATIONTYPE');
 
         return $this->get()->getResultObject();
     }

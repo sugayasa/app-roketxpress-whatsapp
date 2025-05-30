@@ -298,6 +298,7 @@ class Access extends ResourceController
     private function getDataOption()
     {
         $accessModel            =   new AccessModel();
+        $dataReservationType    =   encodeDatabaseObjectResultKey($accessModel->getDataReservationType(), 'ID', true);
         $dataAllAreaType        =   encodeDatabaseObjectResultKey($accessModel->getDataAllAreaType(), 'ID');
         $dataUserAdminLevel     =   encodeDatabaseObjectResultKey($accessModel->getDataUserAdminLevel(), 'ID');
         $dataUserAdminLevelMenu =   encodeDatabaseObjectResultKey($accessModel->getDataUserAdminLevelMenu(), 'ID');
@@ -305,6 +306,7 @@ class Access extends ResourceController
         $dataCountryPhoneCode   =   encodeDatabaseObjectResultKey($accessModel->getDataCountryPhoneCode(), 'ID');
 
         return [
+            "dataReservationType"   =>  $dataReservationType,
             "dataAllAreaType"       =>  $dataAllAreaType,
             "dataUserAdminLevel"    =>  $dataUserAdminLevel,
             "dataUserAdminLevelMenu"=>  $dataUserAdminLevelMenu,

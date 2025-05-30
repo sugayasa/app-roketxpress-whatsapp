@@ -358,6 +358,7 @@ class MainOperation extends Model
             $chatThreadPosition     =   $detailChatListStats['CHATTHREADPOSITION'];
             $idUserAdmin            =   $detailChatListStats['IDUSERADMIN'];
             $idChatThreadType       =   $detailChatListStats['IDCHATTHREADTYPE'];
+            $arrReservationTypeStr  =   $detailChatListStats['ARRRESERVATIONTYPE'];
             $lastMessageChatList    =   $lastMessage;
 
             switch($idChatThreadType){
@@ -389,11 +390,20 @@ class MainOperation extends Model
                 $lastMessageTrim    =   $lastMessageChatList;
             }
 
+            $arrReservationType     =   [];
+            if($arrReservationTypeStr != ''){
+                $arrReservationTypeExplode  =   explode(',', $arrReservationTypeStr);
+                foreach($arrReservationTypeExplode as $idReservationType){
+                    $arrReservationType[]   =   hashidEncode($idReservationType, true);
+                }
+            }
+
             $arrUpdateReferenceRTDB =   [
                 'contactInitial'    =>  $contactInitial,
                 'contactName'       =>  $contactName,
                 'idChatList'        =>  $idChatListEncoded,
                 'idUserAdmin'       =>  $idUserAdminEncoded,
+                'arrReservationType'=>  $arrReservationType,
                 'isNewMessage'      =>  $isNewMessage,
                 'messageBodyTrim'   =>  $lastMessageTrim,
                 'timestamp'         =>  $timeStampRTDB,
@@ -434,7 +444,8 @@ class MainOperation extends Model
                 AA.CHATCAPTION, MAX(A.DATETIMECHAT) AS DATETIMELASTMESSAGE, MAX(IF(A.IDUSERADMIN = 0, A.DATETIMECHAT, NULL)) AS DATETIMELASTREPLY, C.NAMEFULL,
                 IF(AA.IDUSERADMIN = 0, C.NAMEFULL, D.NAME) AS SENDERNAME, IF(AA.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION,
                 IF(AA.IDUSERADMIN = 0, SUBSTRING_INDEX(C.NAMEFULL, ' ', 1), SUBSTRING_INDEX(D.NAME, ' ', 1)) AS SENDERFIRSTNAME,
-                AA.IDMESSAGE, AA.IDCHATTHREAD, AA.IDCHATTHREADTYPE, AA.IDMESSAGEQUOTED, AA.ISFORWARDED, AA.ISTEMPLATE, AA.IDUSERADMIN");
+                AA.IDMESSAGE, AA.IDCHATTHREAD, AA.IDCHATTHREADTYPE, AA.IDMESSAGEQUOTED, AA.ISFORWARDED, AA.ISTEMPLATE, AA.IDUSERADMIN,
+                IFNULL(GROUP_CONCAT(DISTINCT E.IDRESERVATIONTYPE ORDER BY E.IDRESERVATIONTYPE), '') AS ARRRESERVATIONTYPE");
         $this->from('t_chatthread A', true);
         $this->join("(SELECT IDCHATLIST, IDMESSAGE, IDCHATTHREAD, IDCHATTHREADTYPE, IDMESSAGEQUOTED, IDUSERADMIN, CHATCONTENTHEADER, CHATCONTENTBODY, CHATCONTENTFOOTER,
                         CHATCAPTION, ISFORWARDED, ISTEMPLATE
@@ -445,6 +456,7 @@ class MainOperation extends Model
         $this->join('t_chatlist AS B', 'A.IDCHATLIST = B.IDCHATLIST', 'LEFT');
         $this->join('t_contact AS C', 'B.IDCONTACT = C.IDCONTACT', 'LEFT');
         $this->join('m_useradmin AS D', 'AA.IDUSERADMIN = D.IDUSERADMIN', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.t_reservation AS E', 'B.IDCONTACT = E.IDCONTACT', 'LEFT');
         $this->where('A.IDCHATLIST', $idChatList);
         $this->groupBy('A.IDCHATLIST');
         $this->orderBy('A.DATETIMECHAT DESC');

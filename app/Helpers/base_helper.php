@@ -159,23 +159,23 @@ if (!function_exists('getDateTimeIntervalStringInfo')) {
                 $totalYears         =   $totalDays > 364 ? floor($totalDays / 365) : 0;
 
                 if($totalYears > 0){
-                    if($totalYears == 1) $dateTimeIntervalStr   =   "more than a year ago";
-                    if($totalYears > 1) $dateTimeIntervalStr    =   "more than ".$totalYears." years ago";
+                    if($totalYears == 1) $dateTimeIntervalStr   =   "more than a year";
+                    if($totalYears > 1) $dateTimeIntervalStr    =   "more than ".$totalYears." years";
                 } else if($totalMonths > 0) {
-                    if($totalMonths == 1) $dateTimeIntervalStr  =   "more than a month ago";
-                    if($totalMonths > 1) $dateTimeIntervalStr   =   "more than ".$totalMonths." months ago";
+                    if($totalMonths == 1) $dateTimeIntervalStr  =   "more than a month";
+                    if($totalMonths > 1) $dateTimeIntervalStr   =   "more than ".$totalMonths." months";
                 } else if($totalDays > 0) {
-                    if($totalDays == 1) $dateTimeIntervalStr    =   "1 day and ".$totalHours." ".$totalHoursSuffix." ago";
-                    if($totalMonths > 1) $dateTimeIntervalStr   =   $totalDays." days and ".$totalHours." ".$totalHoursSuffix." ago";
+                    if($totalDays == 1) $dateTimeIntervalStr    =   "1 day and ".$totalHours." ".$totalHoursSuffix;
+                    if($totalMonths > 1) $dateTimeIntervalStr   =   $totalDays." days and ".$totalHours." ".$totalHoursSuffix;
                 } else {
-                    $dateTimeIntervalStr    =   $totalHours." ".$totalHoursSuffix." and ".$totalHours." ".$totalMinutessSuffix." ago";
+                    $dateTimeIntervalStr    =   $totalHours." ".$totalHoursSuffix." and ".$totalHours." ".$totalMinutessSuffix;
                 }
             }
 
             if($minutesDifference > 60 && $maxHourCondition == 1) $dateTimeIntervalStr =   $dateTimeTF->toLocalizedString('HH:mm');
-            if($minutesDifference <= 60 && $minutesDifference > 0) $dateTimeIntervalStr =   $minutesDifference." mins ago";
-            if($minutesDifference == 1) $dateTimeIntervalStr =   "1 min ago";
-            if($minutesDifference <= 0) $dateTimeIntervalStr =   "Just now";
+            if($minutesDifference <= 60 && $minutesDifference > 0) $dateTimeIntervalStr =   $minutesDifference." mins";
+            if($minutesDifference == 1) $dateTimeIntervalStr =   "1 min";
+            if($minutesDifference <= 0) $dateTimeIntervalStr =   "Now";
         }
 
         return $dateTimeIntervalStr;

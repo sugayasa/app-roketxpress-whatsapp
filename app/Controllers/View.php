@@ -8,8 +8,7 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use CodeIgniter\I18n\Time;
-use App\Models\ChartOfAccountModel;
-use App\Models\MainOperation;
+use App\Models\AccessModel;
 
 class View extends ResourceController
 {
@@ -38,16 +37,19 @@ class View extends ResourceController
     
     public function chat()
     {
-        $contentPills   =   view(
-                                'ContentPills/chat',
-                                [],
-                                ['debug' => false]
-                            );
-        $contentMain    =   view(
-                                'ContentMain/chat',
-                                ['idUserAdmin' => hashidEncode($this->userData->idUserAdmin, true)],
-                                ['debug' => false]
-                            );
+        $accessModel        =   new AccessModel();
+        $detailUserAdmin    =   $accessModel->getUserAdminDetail($this->userData->idUserAdmin);
+        $idReservationType  =   $detailUserAdmin['IDRESERVATIONTYPE'] ? hashidEncode($detailUserAdmin['IDRESERVATIONTYPE'], true) : 0;
+        $contentPills       =   view(
+                                    'ContentPills/chat',
+                                    ['idReservationType' => $idReservationType],
+                                    ['debug' => false]
+                                );
+        $contentMain        =   view(
+                                    'ContentMain/chat',
+                                    ['idUserAdmin' => hashidEncode($this->userData->idUserAdmin, true)],
+                                    ['debug' => false]
+                                );
         return $this->setResponseFormat('json')
         ->respond([
             'contentPills'  =>  $contentPills,

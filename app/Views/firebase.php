@@ -70,6 +70,7 @@
 				timestamp = lastUpdateChat.timestamp,
 				dateTimeLastReply = lastUpdateChat.dateTimeLastReply,
 				totalUnreadMessage = lastUpdateChat.totalUnreadMessage,
+				arrReservationType = lastUpdateChat.arrReservationType,
 				messageDetail = lastUpdateChat.messageDetail,
 				senderFirstName = messageDetail.senderFirstName,
 				lastNotifTimeStamp = localStorage.getItem('lastNotifTimeStamp');
@@ -87,7 +88,7 @@
 						if(chatListItemCounter.length > 0){
 							chatListItemCounter.find('.badge').text(totalUnreadMessage);
 						} else {
-							let chatListItemCounterHtml = '<div class="unread-message"><span class="badge badge-soft-danger rounded-pill">'+totalUnreadMessage+'</span></div>';
+							let chatListItemCounterHtml = '<div class="unread-message"><span class="badge badge-soft-danger rounded-pill py-0">'+totalUnreadMessage+'</span></div>';
 							chatListItem.find('div.d-flex').append(chatListItemCounterHtml);
 						}
 					} else {
@@ -96,14 +97,33 @@
 
 					if(isNewMessage)  {
 						chatListItem.attr('data-timestamp', timestamp).attr('data-datetimelastreply', dateTimeLastReply);
-						chatListItem.find('div.chatList-item-time').text('Just Now');
+						chatListItem.find('div.chatList-item-time').text('Now');
 						chatListItem.prependTo("#list-chatListData");
 					}
 				} else {
 					let isSearchActive = $("#filter-isSearchActive").val();
 					if(isNewMessage && !isSearchActive){
+						let chatListItemCounterHtml = totalUnreadMessage > 0 ? '<div class="unread-message"><span class="badge badge-soft-danger rounded-pill py-0">'+totalUnreadMessage+'</span></div>' : '',
+							arrCheckedReservationType = $('.reservationTypeCheckbox:checked').map(function () {
+								return this.value;
+							}).get(),
+							elemReservatioTypeTag = '',
+							addChatList = false;
+
+						if(isValidArray(arrReservationType)){
+							elemReservatioTypeTag += '<div class="chatList-item ps-1">';
+                            for (var i = 0; i < arrReservationType.length; i++) {
+                                let reservationTypeChat	= arrReservationType[i],
+									tagClass = dataReservationTypeClass[reservationTypeChat];
+								
+								if (arrCheckedReservationType.includes(reservationTypeChat)) addChatList = true;
+                                if (typeof tagClass != 'undefined' && tagClass != null) elemReservatioTypeTag += '<div class="bg-' + tagClass + ' width-5px">&nbsp;</div>';
+                            }
+                            elemReservatioTypeTag += '</div>';
+						}
+
 						let chatListItemHtml =	'<li class="unread chatList-item" data-idchatlist="'+idChatList+'" data-timestamp="'+timestamp+'" data-datetimelastreply="'+dateTimeLastReply+'">\
-													<a href="#">\
+													<a href="#" class="px-2">\
 														<div class="d-flex">\
 															<div class="chat-user-img align-self-center me-3 ms-0">\
 																<div class="avatar-xs">\
@@ -115,13 +135,18 @@
 																<h5 class="text-truncate font-size-15 mb-1">'+contactName+'</h5>\
 																<p class="chat-user-message text-truncate mb-0">'+senderFirstName+': '+messageBodyTrim+'</p>\
 															</div>\
-															<div class="chatList-item-time font-size-11">Just Now</div>\
+															<div class="chatList-item-time font-size-11">Now</div>\
+                                            				' + chatListItemCounterHtml + '\
+                                            				' + elemReservatioTypeTag + '\
 														</div>\
 													</a>\
 												</li>';
-						$("#list-chatListData").prepend(chatListItemHtml);
-						activateOnClickChatListItem();
-						counterTimeChatList();
+						
+						if(addChatList) {
+							$("#list-chatListData").prepend(chatListItemHtml);
+							activateOnClickChatListItem();
+							counterTimeChatList();
+						}
 					}
 				}
 				counterTimeChatList();
