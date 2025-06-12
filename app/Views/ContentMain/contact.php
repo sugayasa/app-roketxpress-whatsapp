@@ -65,18 +65,12 @@
                         <div class="mt-2 mb-3">
                             <form class="text-end" id="askQuestion-formAddQuestion">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="askQuestion-inputQuestion" placeholder="Add question to message" autocomplete="off">
+                                    <textarea class="form-control" id="askQuestion-inputQuestion" placeholder="Add question to message" autocomplete="off" rows="4" style="resize: vertical;"></textarea>
                                     <button class="btn btn-success" type="submit"><i class="ri-add-fill"></i></button>
                                 </div>
                             </form>
                         </div>
-                        <ul class="list-group" id="askQuestion-questionList">
-                            <li class="list-group-item text-muted text-center" id="askQuestion-emptyQuestionText">
-                                <div role="alert" class="alert alert-warning text-center py-2 mb-0">
-                                    <span class="text-muted">Insert question to send message to customer</span>
-                                </div>
-                            </li>
-                        </ul>
+                        <ul class="list-group" id="askQuestion-questionList"></ul>
                     </div>
                     <div class="col-lg-5 col-sm-12">
                         <div class="card">
