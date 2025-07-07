@@ -77,7 +77,7 @@ class Chat extends ResourceController
                 $keyChatList->LASTMESSAGE           =   $lastMessage;
 
                 if($arrIdReservationType != ""){
-                    $arrIdReservationType       =   explode(',', $arrIdReservationType);
+                    $arrIdReservationType       =   json_decode($arrIdReservationType);
                     $arrIdReservationTypeReturn =   [];
 
                     foreach($arrIdReservationType as $idReservationType){
@@ -134,6 +134,7 @@ class Chat extends ResourceController
 
         if($listChatThread){
             foreach($listChatThread as $keyChatThread){
+                $idMessageQuoted=   $keyChatThread->IDMESSAGEQUOTED;
                 $dateTimeChat   =   $keyChatThread->DATETIMECHAT;
                 $dateTimeChatTF =   Time::createFromTimestamp($dateTimeChat, 'UTC')->setTimezone($userTimeZoneOffset);
                 $chatDate       =   $dateTimeChatTF->toDateString();
@@ -163,6 +164,17 @@ class Chat extends ResourceController
 
                 $mainOperation->updateDataTable('t_chatthread', ['STATUSREAD' => 1], ['IDCHATTHREAD' => $idChatThread]);
                 unset($keyChatThread->ARRIDUSERADMINREAD);
+
+                if($idMessageQuoted != ""){
+                    $messageQuotedDetail    =   $chatModel->getMessageQuotedDetail($idMessageQuoted);
+                    $messageQuoted          =   $messageQuotedDetail['MESSAGEQUOTED'] ?? '';
+
+                    if($messageQuoted != ""){
+                        $messageQuotedArr               =   explode("\n", $messageQuoted);
+                        $keyChatThread->MESSAGEQUOTED   =   $messageQuotedArr[0];
+                    }
+                    $keyChatThread->MESSAGEQUOTEDSENDER   =   $messageQuotedDetail['MESSAGEQUOTEDSENDER'] ?? '-';
+                }
             }
             $listChatThread =   encodeDatabaseObjectResultKey($listChatThread, 'IDCHATTHREAD', true);
             $mainOperation->updateChatListAndRTDBStats($idChatList, false);
@@ -297,11 +309,12 @@ class Chat extends ResourceController
 
         $idContact          =   $this->request->getVar('idContact');
         $idContact          =   hashidDecode($idContact);
+        $idMessageQuoted    =   $this->request->getVar('idMessageQuoted');
         $phoneNumber        =   $this->request->getVar('phoneNumber');
         $phoneNumber        =   preg_replace('/[^0-9]/', '', $phoneNumber);
         $activePhoneNumber  =   $mainOperation->getActivePhoneNumber($idContact) ?? $phoneNumber;
         $message            =   $this->request->getVar('message');
-        $sendResult         =   $oneMsgIO->sendMessage($activePhoneNumber, $message);
+        $sendResult         =   $oneMsgIO->sendMessage($activePhoneNumber, $message, $idMessageQuoted);
 
        if(!$sendResult['isSent']){
             $errorCode  =   $sendResult['errorCode'];

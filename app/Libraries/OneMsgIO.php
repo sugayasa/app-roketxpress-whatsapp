@@ -26,12 +26,20 @@ class OneMsgIO
         return $this->execOneMsgAPI($jsonDataTemplate, 'sendTemplate');
     }
 
-    public function sendMessage($phoneNumber, $message)
+    public function sendMessage($phoneNumber, $message, $quotedMsgId = '')
     {
-        $jsonDataTemplate   =   [
-            "phone" =>  $phoneNumber,
-            "body"  =>  $message
-        ];
+        if($quotedMsgId == ''){
+            $jsonDataTemplate   =   [
+                "phone" =>  $phoneNumber,
+                "body"  =>  $message
+            ];
+        } else {
+            $jsonDataTemplate   =   [
+                "phone"         =>  $phoneNumber,
+                "body"          =>  $message,
+                "quotedMsgId"   =>  $quotedMsgId
+            ];
+        }
 
         return $this->execOneMsgAPI($jsonDataTemplate, 'sendMessage');
     }
@@ -47,6 +55,8 @@ class OneMsgIO
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($jsonData));
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        $logger->info('endPoint:' . $endPoint);
+        $logger->info('jsonData:' . json_encode($jsonData));
 
         try {
             $response   =   curl_exec($ch);

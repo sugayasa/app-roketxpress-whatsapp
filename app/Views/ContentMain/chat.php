@@ -50,6 +50,13 @@
         </div>
         <div id="chat-input-section" class="chat-input-section p-2 p-lg-3 border-top mb-0 d-none">
             <form class="row g-0" id="chat-formMessage" name="chat-formMessage" method="post" enctype="multipart/form-data">
+                <div class="col-12 pb-2 d-none" id="chat-quotedMessage" >
+                    <div class="border rounded bg-light px-2 py-1 position-relative" style="border-left: 6px solid #0d6efd !important;">
+                        <small class="text-muted fst-italic">Reply to...</small>
+                        <div class="text-truncate" id="chat-quotedMessageText">-</div>
+                        <button type="button" class="btn-close btn-sm position-absolute top-0 end-0 mt-2 me-2" aria-label="Close" id="chat-quotedMessageRemove"></button>
+                    </div>
+                </div>
                 <div class="col">
                     <textarea type="text" class="form-control form-control-lg bg-light border-light" id="chat-inputTextMessage" placeholder="Enter Message..." rows="1" autofocus></textarea>
                 </div>
@@ -59,6 +66,7 @@
                             <li class="list-inline-item">
                                 <input type="hidden" id="chat-idContact" name="chat-idContact" value="">
                                 <input type="hidden" id="chat-idChatList" name="chat-idChatList" value="">
+                                <input type="hidden" id="chat-idMessageQuoted" name="chat-idMessageQuoted" value="">
                                 <input type="hidden" id="chat-timeStampLastReply" name="chat-timeStampLastReply" value="0">
                                 <input type="hidden" id="chat-threadPage" name="chat-threadPage" value="1">
                                 <input type="hidden" id="chat-isMaximumChatThreadContent" name="chat-isMaximumChatThreadContent" value="false">

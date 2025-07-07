@@ -44,10 +44,9 @@ class ChatModel extends Model
         $pageOffset     =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, A.LASTSENDERFIRSTNAME, B.NAMEFULL, A.TOTALUNREADMESSAGE,
                 A.LASTMESSAGE, A.DATETIMELASTMESSAGE, '' AS DATETIMELASTMESSAGESTR, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY,
-                IFNULL(GROUP_CONCAT(DISTINCT C.IDRESERVATIONTYPE ORDER BY C.IDRESERVATIONTYPE), '') AS ARRIDRESERVATIONTYPE");
+                B.ARRIDRESERVATIONTYPE");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
-        $this->join(APP_MAIN_DATABASE_NAME.'.t_reservation AS C', 'A.IDCONTACT = C.IDCONTACT', 'LEFT');
 
         if(isset($searchKeyword) && !is_null($searchKeyword) && $searchKeyword != '' && ($idContact == null || $idContact == '')) {
             $this->groupStart();
@@ -67,14 +66,16 @@ class ChatModel extends Model
             $this->where('A.IDCONTACT = ', $idContact);
         }
 
-        $this->groupBy('A.IDCHATLIST');
-        $this->having('ARRIDRESERVATIONTYPE', '');
         if(is_array($arrReservationType) && count($arrReservationType) > 0){
-            foreach($arrReservationType as $idReservationType){
-                $this->orHaving('ARRIDRESERVATIONTYPE LIKE', '%'.(string) $idReservationType.'%');
+            $this->groupStart();
+            $this->where("B.ARRIDRESERVATIONTYPE", "");
+            foreach($arrReservationType as $index => $idReservationType){
+                $this->orWhere("JSON_CONTAINS(B.ARRIDRESERVATIONTYPE, $idReservationType, '$')", null, false);
             }
+            $this->groupEnd();
         }
 
+        $this->groupBy('A.IDCHATLIST');
         $this->orderBy('A.DATETIMELASTMESSAGE DESC');
         $this->limit($dataPerPage, $pageOffset);
 
@@ -105,9 +106,10 @@ class ChatModel extends Model
     {	
         $pageOffset =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATTHREAD, A.IDMESSAGE, A.IDMESSAGEQUOTED, A.IDCHATTHREADTYPE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME,
-                    A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER, A.DATETIMECHAT, '' AS CHATTIME, '' AS DAYTITLE, A.STATUSREAD, A.DATETIMESENT, A.DATETIMEDELIVERED,
-                    A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS USERNAMECHAT, IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.CHATCAPTION, A.ISFORWARDED,
-                    A.ISTEMPLATE, IFNULL(CONCAT('[', GROUP_CONCAT(E.IDUSERADMIN), ']'), '[]') AS ARRIDUSERADMINREAD");
+                    A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER, A.DATETIMECHAT, '' AS CHATTIME, '' AS DAYTITLE, '' AS MESSAGEQUOTED, 'Auto System' AS MESSAGEQUOTEDSENDER,
+                    A.STATUSREAD, A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS USERNAMECHAT,
+                    IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.CHATCAPTION, A.ISFORWARDED, A.ISTEMPLATE,
+                    IFNULL(CONCAT('[', GROUP_CONCAT(E.IDUSERADMIN), ']'), '[]') AS ARRIDUSERADMINREAD");
         $this->from('t_chatthread A', true);
         $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
         $this->join('t_chatlist AS C', 'A.IDCHATLIST = C.IDCHATLIST', 'LEFT');
@@ -122,6 +124,21 @@ class ChatModel extends Model
 
         if(is_null($result)) return false;
         return $result;
+    }
+
+    public function getMessageQuotedDetail($idMessageQuoted)
+    {	
+        $this->select("A.CHATCONTENTBODY AS MESSAGEQUOTED, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS MESSAGEQUOTEDSENDER");
+        $this->from('t_chatthread A', true);
+        $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
+        $this->join('t_chatlist AS C', 'A.IDCHATLIST = C.IDCHATLIST', 'LEFT');
+        $this->join('t_contact AS D', 'C.IDCONTACT = D.IDCONTACT', 'LEFT');
+        $this->where('A.IDMESSAGE', $idMessageQuoted);
+        $this->limit(1);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return ["MESSAGEQUOTED" => '', "MESSAGEQUOTEDSENDER" => ''];
+        return $row;
     }
 
     public function getListActiveReservation($idContact)
