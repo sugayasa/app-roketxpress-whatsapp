@@ -58,21 +58,33 @@ class ChatModel extends Model
         }
 
         switch($chatType) {
-            case 2  : $this->where('A.TOTALUNREADMESSAGE > ', 0); break;
-            default : break;
+            case 2  :   if(is_array($arrReservationType) && count($arrReservationType) > 0){
+                            $this->groupStart();
+                            $this->where('A.TOTALUNREADMESSAGE > ', 0);
+                            $this->groupStart();
+                            $this->where("B.ARRIDRESERVATIONTYPE", "");
+                            foreach($arrReservationType as $index => $idReservationType){
+                                $this->orWhere("JSON_CONTAINS(B.ARRIDRESERVATIONTYPE, $idReservationType, '$')", null, false);
+                            }
+                            $this->groupEnd();
+                            $this->groupEnd();
+                        } else {
+                            $this->where('A.TOTALUNREADMESSAGE > ', 0);
+                        }
+                        break;
+            default :   if(is_array($arrReservationType) && count($arrReservationType) > 0){
+                            $this->groupStart();
+                            $this->where("B.ARRIDRESERVATIONTYPE", "");
+                            foreach($arrReservationType as $index => $idReservationType){
+                                $this->orWhere("JSON_CONTAINS(B.ARRIDRESERVATIONTYPE, $idReservationType, '$')", null, false);
+                            }
+                            $this->groupEnd();
+                        }
+                        break;
         }
 
         if(isset($idContact) && !is_null($idContact) && $idContact != '') {
             $this->where('A.IDCONTACT = ', $idContact);
-        }
-
-        if(is_array($arrReservationType) && count($arrReservationType) > 0){
-            $this->groupStart();
-            $this->where("B.ARRIDRESERVATIONTYPE", "");
-            foreach($arrReservationType as $index => $idReservationType){
-                $this->orWhere("JSON_CONTAINS(B.ARRIDRESERVATIONTYPE, $idReservationType, '$')", null, false);
-            }
-            $this->groupEnd();
         }
 
         $this->groupBy('A.IDCHATLIST');
