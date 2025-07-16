@@ -179,6 +179,7 @@
 							
 							activateChatContentOptionButton();
 							activateScrollToTopChatThread();
+    						activateQuotedMessageClick();
 							recalculateSimpleBar('chat-conversation', true);
 							activateMagnificPopup();
 						}
