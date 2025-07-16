@@ -166,12 +166,12 @@ class Chat extends ResourceController
                 unset($keyChatThread->ARRIDUSERADMINREAD);
 
                 if($idMessageQuoted != ""){
-                    $messageQuotedDetail    =   $chatModel->getMessageQuotedDetail($idMessageQuoted);
+                    $messageQuotedDetail    =   $mainOperation->getMessageQuotedDetail($idMessageQuoted);
                     $messageQuoted          =   $messageQuotedDetail['MESSAGEQUOTED'] ?? '';
 
                     if($messageQuoted != ""){
                         $messageQuotedArr               =   explode("\n", $messageQuoted);
-                        $keyChatThread->MESSAGEQUOTED   =   $messageQuotedArr[0];
+                        $keyChatThread->MESSAGEQUOTED   =   strlen($messageQuotedArr[0]) > 50 ? substr($messageQuotedArr[0], 0, 50)."..." : $messageQuotedArr[0];
                     }
                     $keyChatThread->MESSAGEQUOTEDSENDER   =   $messageQuotedDetail['MESSAGEQUOTEDSENDER'] ?? '-';
                 }

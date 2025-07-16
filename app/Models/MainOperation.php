@@ -347,6 +347,7 @@ class MainOperation extends Model
         $detailChatListStats=   $this->getDetailChatListStats($idChatList);
 
         if(is_array($detailChatListStats) && !empty($detailChatListStats)){
+            $idMessageQuoted        =   $detailChatListStats['IDMESSAGEQUOTED'];
             $totalUnreadMessage     =   $detailChatListStats['TOTALUNREADMESSAGE'];
             $lastMessage            =   $detailChatListStats['LASTMESSAGE'];
             $dateTimeLastMessage    =   $detailChatListStats['DATETIMELASTMESSAGE'];
@@ -360,6 +361,7 @@ class MainOperation extends Model
             $idChatThreadType       =   $detailChatListStats['IDCHATTHREADTYPE'];
             $arrReservationTypeStr  =   $detailChatListStats['ARRRESERVATIONTYPE'];
             $lastMessageChatList    =   $lastMessage;
+            $messageQuoted          =   $messageQuotedSender    =  '';
 
             switch($idChatThreadType){
                 case 2  : $lastMessageChatList = '<i class="ri-file-image-line"></i> Image'; break;
@@ -398,6 +400,17 @@ class MainOperation extends Model
                 }
             }
 
+            if($idMessageQuoted != ""){
+                $messageQuotedDetail=   $this->getMessageQuotedDetail($idMessageQuoted);
+                $messageQuotedDB    =   $messageQuotedDetail['MESSAGEQUOTED'] ?? '';
+
+                if($messageQuotedDB != ""){
+                    $messageQuotedArr   =   explode("\n", $messageQuotedDB);
+                    $messageQuoted      =   strlen($messageQuotedArr[0]) > 50 ? substr($messageQuotedArr[0], 0, 50)."..." : $messageQuotedArr[0];
+                }
+                $messageQuotedSender    =   $messageQuotedDetail['MESSAGEQUOTEDSENDER'] ?? '-';
+            }
+
             $arrUpdateReferenceRTDB =   [
                 'contactInitial'    =>  $contactInitial,
                 'contactName'       =>  $contactName,
@@ -414,19 +427,21 @@ class MainOperation extends Model
                     'senderFirstName'   =>  $senderFirstName,
                     'chatThreadPosition'=>  $chatThreadPosition,
                     'arrayChatThread'   =>  [
-                        'IDMESSAGE'         =>  $detailChatListStats['IDMESSAGE'],
-                        'IDCHATTHREAD'      =>  hashidEncode($detailChatListStats['IDCHATTHREAD'], true),
-                        'IDCHATTHREADTYPE'  =>  $detailChatListStats['IDCHATTHREADTYPE'],
-                        'IDMESSAGEQUOTED'   =>  $detailChatListStats['IDMESSAGEQUOTED'],
-                        'CHATCONTENTHEADER' =>  $detailChatListStats['CHATCONTENTHEADER'],
-                        'CHATCONTENTBODY'   =>  $detailChatListStats['LASTMESSAGE'],
-                        'CHATCONTENTFOOTER' =>  $detailChatListStats['CHATCONTENTFOOTER'],
-                        'CHATCAPTION'       =>  $detailChatListStats['CHATCAPTION'],
-                        'DATETIMESENT'      =>  null,
-                        'DATETIMEDELIVERED' =>  null,
-                        'DATETIMEREAD'      =>  null,
-                        'ISFORWARDED'       =>  $detailChatListStats['ISFORWARDED'],
-                        'ISTEMPLATE'        =>  $detailChatListStats['ISTEMPLATE']
+                        'IDMESSAGE'             =>  $detailChatListStats['IDMESSAGE'],
+                        'IDCHATTHREAD'          =>  hashidEncode($detailChatListStats['IDCHATTHREAD'], true),
+                        'IDCHATTHREADTYPE'      =>  $detailChatListStats['IDCHATTHREADTYPE'],
+                        'IDMESSAGEQUOTED'       =>  $idMessageQuoted,
+                        'MESSAGEQUOTEDSENDER'   =>  $messageQuotedSender,
+                        'MESSAGEQUOTED'         =>  $messageQuoted,
+                        'CHATCONTENTHEADER'     =>  $detailChatListStats['CHATCONTENTHEADER'],
+                        'CHATCONTENTBODY'       =>  $detailChatListStats['LASTMESSAGE'],
+                        'CHATCONTENTFOOTER'     =>  $detailChatListStats['CHATCONTENTFOOTER'],
+                        'CHATCAPTION'           =>  $detailChatListStats['CHATCAPTION'],
+                        'DATETIMESENT'          =>  null,
+                        'DATETIMEDELIVERED'     =>  null,
+                        'DATETIMEREAD'          =>  null,
+                        'ISFORWARDED'           =>  $detailChatListStats['ISFORWARDED'],
+                        'ISTEMPLATE'            =>  $detailChatListStats['ISTEMPLATE']
                     ]
                 ]
             ];
@@ -553,4 +568,19 @@ class MainOperation extends Model
         ];
 		return $row;
 	}
+
+    public function getMessageQuotedDetail($idMessageQuoted)
+    {	
+        $this->select("A.CHATCONTENTBODY AS MESSAGEQUOTED, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS MESSAGEQUOTEDSENDER");
+        $this->from('t_chatthread A', true);
+        $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
+        $this->join('t_chatlist AS C', 'A.IDCHATLIST = C.IDCHATLIST', 'LEFT');
+        $this->join('t_contact AS D', 'C.IDCONTACT = D.IDCONTACT', 'LEFT');
+        $this->where('A.IDMESSAGE', $idMessageQuoted);
+        $this->limit(1);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return ["MESSAGEQUOTED" => '', "MESSAGEQUOTEDSENDER" => ''];
+        return $row;
+    }
 }

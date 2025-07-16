@@ -126,21 +126,6 @@ class ChatModel extends Model
         return $result;
     }
 
-    public function getMessageQuotedDetail($idMessageQuoted)
-    {	
-        $this->select("A.CHATCONTENTBODY AS MESSAGEQUOTED, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS MESSAGEQUOTEDSENDER");
-        $this->from('t_chatthread A', true);
-        $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
-        $this->join('t_chatlist AS C', 'A.IDCHATLIST = C.IDCHATLIST', 'LEFT');
-        $this->join('t_contact AS D', 'C.IDCONTACT = D.IDCONTACT', 'LEFT');
-        $this->where('A.IDMESSAGE', $idMessageQuoted);
-        $this->limit(1);
-
-        $row    =   $this->get()->getRowArray();
-        if(is_null($row)) return ["MESSAGEQUOTED" => '', "MESSAGEQUOTEDSENDER" => ''];
-        return $row;
-    }
-
     public function getListActiveReservation($idContact)
     {	
         $dateNow    =   date('Y-m-d');
