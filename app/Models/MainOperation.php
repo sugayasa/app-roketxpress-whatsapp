@@ -422,6 +422,7 @@ class MainOperation extends Model
                 $lastMessageTrim    =   $lastMessageChatList;
             }
 
+            $arrReservationType     =   [];
             if($arrReservationTypeStr != ''){
                 $arrReservationType =   json_decode($arrReservationTypeStr, true);
                 $arrReservationType =   array_filter(array_map(function($idReservationType) {
