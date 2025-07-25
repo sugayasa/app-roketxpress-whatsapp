@@ -1,10 +1,5 @@
 <div class="d-lg-flex content-menu" id="content-chat">
     <div class="w-100 overflow-hidden position-relative" id="container-chatForm">
-        <div id="content-chat-landing" class="text-center" style="margin-top:50px">
-            <img src="<?=BASE_URL_ASSETS_IMG?>logo-single-2025.png" class="img-fluid mb-3 text-muted" style="height:100px">
-            <h5 class="text-muted"><?=APP_NAME_FORMAL?></h5>
-            <p class="text-muted">Conversation system for integrated tour travel reservations</p>
-        </div>
         <div id="chat-topbar" class="p-3 p-lg-4 border-bottom user-chat-topbar d-none">
             <div class="row align-items-center">
                 <div class="col-sm-4 col-8">
@@ -27,8 +22,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-8 col-4">
+                <div class="col-sm-8 col-4 text-end">
                     <ul class="list-inline user-chat-nav text-end mb-0">                                        
+                        <li class="list-inline-item" id="chat-topbar-badgeHandleStatus"></li>
                         <li class="list-inline-item">
                             <div class="dropdown">
                                 <button class="btn nav-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -57,6 +53,11 @@
                         <button type="button" class="btn-close btn-sm position-absolute top-0 end-0 mt-2 me-2" aria-label="Close" id="chat-quotedMessageRemove"></button>
                     </div>
                 </div>
+                <div class="col-12 pb-2" id="chat-actionButton">
+                    <button type="button" class="btn btn-sm btn-warning me-1 d-none" id="chat-actionButton-markAsUnread"><span><i class="font-size-15 ri-chat-unread-line"></i> Mark as Unread</span></button>
+                    <button type="button" class="btn btn-sm btn-primary me-1 d-none" id="chat-actionButton-activateBOT" data-handleStatus="1"><span><i class="font-size-15 ri-robot-2-line"></i> Activate BOT</span></button>
+                    <button type="button" class="btn btn-sm btn-success me-1 d-none" id="chat-actionButton-activateHuman" data-handleStatus="2"><span><i class="font-size-15 ri-user-voice-line"></i> Activate Human</span></button>
+                </div>
                 <div class="col">
                     <textarea type="text" class="form-control form-control-lg bg-light border-light" id="chat-inputTextMessage" placeholder="Enter Message..." rows="1" autofocus></textarea>
                 </div>
@@ -67,6 +68,8 @@
                                 <input type="hidden" id="chat-idContact" name="chat-idContact" value="">
                                 <input type="hidden" id="chat-idChatList" name="chat-idChatList" value="">
                                 <input type="hidden" id="chat-idMessageQuoted" name="chat-idMessageQuoted" value="">
+                                <input type="hidden" id="chat-handleStatus" name="chat-handleStatus" value="">
+                                <input type="hidden" id="chat-handleForce" name="chat-handleForce" value="0">
                                 <input type="hidden" id="chat-timeStampLastReply" name="chat-timeStampLastReply" value="0">
                                 <input type="hidden" id="chat-threadPage" name="chat-threadPage" value="1">
                                 <input type="hidden" id="chat-isMaximumChatThreadContent" name="chat-isMaximumChatThreadContent" value="false">
@@ -257,7 +260,12 @@
 </style>
 <script>
 	var idReservationType   =   "<?=$idReservationType?>",
-        jsFileUrl           =   "<?=BASE_URL_ASSETS_JS?>menu/chat.js?<?=date("YmdHis")?>";
+        jsFileUrl           =   "<?=BASE_URL_ASSETS_JS?>menu/chat.js?<?=date("YmdHis")?>",
+        contentChatLanding  =   '<div id="content-chat-landing" class="text-center" style="margin-top:50px">\
+                                    <img src="<?=BASE_URL_ASSETS_IMG?>logo-single-2025.png" class="img-fluid mb-3 text-muted" style="height:100px">\
+                                    <h5 class="text-muted"><?=APP_NAME_FORMAL?></h5>\
+                                    <p class="text-muted">Conversation system for integrated tour travel reservations</p>\
+                                </div>';
 
     localStorage.setItem('idUserAdminMenuChat', "<?=$idUserAdmin?>");
 	$.getScript(jsFileUrl);

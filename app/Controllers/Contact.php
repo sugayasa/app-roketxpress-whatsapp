@@ -135,10 +135,11 @@ class Contact extends ResourceController
                 $minimumDateDT          =   $currentDateDT->modify('-30 days');
 
                 if ($reservationDateStartDT > $minimumDateDT) {
-                    $keyDetailReservation->ALLOWASKQUESTION =   true;
+                     $keyDetailReservation->ALLOWASKQUESTION =   true;
                 } else {
                     $keyDetailReservation->ALLOWASKQUESTION =   false;
                 }
+
                 $listTemplateMessage                        =   encodeDatabaseObjectResultKey($listTemplateMessage, 'IDCHATTEMPLATE');
                 $keyDetailReservation->LISTTEMPLATEMESSAGE  =   json_encode($listTemplateMessage);
             }
@@ -198,6 +199,10 @@ class Contact extends ResourceController
         $idChatTemplate             =   hashidDecode($templateData->IDCHATTEMPLATE);
         $templateName               =   $templateData->TEMPLATECODE;
         $templateLanguageCode       =   $templateData->TEMPLATELANGUAGECODE;
+        $isCronGreeting             =   $templateData->ISCRONGREETING;
+        $isCronReconfirmation       =   $templateData->ISCRONRECONFIRMATION;
+        $isCronReviewRequest        =   $templateData->ISCRONREVIEWREQUEST;
+        $isQuestion                 =   $templateData->ISQUESTION;
         $templateParametersHeader   =   $templateParameters->parametersHeader;
         $templateParametersBody     =   $templateParameters->parametersBody;
         $arrTemplateParameters      =   [];
@@ -233,8 +238,14 @@ class Contact extends ResourceController
             $idUserAdmin                =   $this->userData->idUserAdmin;
             $listOfTemplate             =   $oneMsgIO->getListOfTemplates();
             $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateName, $listOfTemplate, $arrTemplateParameters);
+            $handleStatus               =   1;
+            
+            if($isQuestion || $isQuestion == 1) {
+                $handleStatus = 2;
+                ////add hit API BOT, set handle status to 2 (human) 
+            }
 
-            if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin, ['forceUpdate' => true]);
+            if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin, ['forceUpdate' => true, 'handleStatus' => $handleStatus]);
             else return throwResponseInternalServerError('Failed to generate message from template. Please try again later');
             $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => 1], ['IDCONTACT' => $idContact]);
             return throwResponseOK('Message has been sent');

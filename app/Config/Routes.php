@@ -47,6 +47,8 @@ $routes->post('access/saveDetailProfileSetting', 'Access::saveDetailProfileSetti
 
 $routes->get('cron/execChatCron', 'Cron::execChatCron');
 $routes->post('webhook/whatsapp/oneMsgIO', 'Webhook::whatsappOneMsgIO');
+$routes->post('webhook/whatsapp/handleForceHuman', 'Webhook::handleForceHuman');
+$routes->post('webhook/whatsapp/getSignature', 'Webhook::getSignature');
 
 $routes->post('view/chat', 'View::chat', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('view/contact', 'View::contact', ['filter' => 'auth:mustBeLoggedIn']);
@@ -60,6 +62,8 @@ $routes->post('chat/getMoreChatThread', 'Chat::getMoreChatThread', ['filter' => 
 $routes->post('chat/getDetailThreadACK', 'Chat::getDetailThreadACK', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('chat/sendMessage', 'Chat::sendMessage', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('chat/updateUnreadMessageCount', 'Chat::updateUnreadMessageCount', ['filter' => 'auth:mustBeLoggedIn']);
+$routes->post('chat/setMarkAsUnread', 'Chat::setMarkAsUnread', ['filter' => 'auth:mustBeLoggedIn']);
+$routes->post('chat/setActiveHandleStatus', 'Chat::setActiveHandleStatus', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('chat/getDetailReservation', 'Chat::getDetailReservation', ['filter' => 'auth:mustBeLoggedIn']);
 $routes->post('chat/saveReservation', 'Chat::saveReservation', ['filter' => 'auth:mustBeLoggedIn']);
 

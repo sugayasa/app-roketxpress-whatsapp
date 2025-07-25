@@ -241,7 +241,7 @@ if(window.location.href != '<?=BASE_URL?>') window.history.replaceState({Title: 
 	clearAppData(false);
 </script>
 <script>
-	var intervalId;
+	var intervalId, intervalIdForceHandleChatList, intervalIdForceHandleChatMenu;
 	var arrClassColor	=	['info', 'warning', 'success', 'light', 'primary', 'secondary', 'danger', 'dark'];
 	var timezoneOffset	=	moment.tz.guess(),
 		dateToday		=	moment().format('DD-MM-YYYY'),

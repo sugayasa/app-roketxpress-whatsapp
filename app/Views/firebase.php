@@ -18,7 +18,8 @@
 		  rtdb_appPath		=	'<?=FIREBASE_RTDB_MAINREF_NAME?>/',
 		  currentACK		=	ref(database, rtdb_appPath + 'currentACK'),
 		  lastUpdateChat	=	ref(database, rtdb_appPath + 'lastUpdateChat'),
-		  unreadChatNumber	=	ref(database, rtdb_appPath + 'unreadChatNumber');
+		  unreadChatNumber	=	ref(database, rtdb_appPath + 'unreadChatNumber'),
+		  forceHandleNumber	=	ref(database, rtdb_appPath + 'forceHandleNumber');
 
 	onValue(currentACK, (snapshot) => {
 		const lastAlias = localStorage.getItem('lastAlias'),
@@ -66,6 +67,8 @@
 				idChatList = lastUpdateChat.idChatList,
 				idUserAdmin = lastUpdateChat.idUserAdmin,
 				isNewMessage = lastUpdateChat.isNewMessage,
+				handleStatus = parseInt(lastUpdateChat.handleStatus),
+				handleForce = parseInt(lastUpdateChat.handleForce),
 				messageBodyTrim = lastUpdateChat.messageBodyTrim,
 				timestamp = lastUpdateChat.timestamp,
 				dateTimeLastReply = lastUpdateChat.dateTimeLastReply,
@@ -81,7 +84,11 @@
 					containerConversation = $("#chat-conversation-ul");
 
 				if(chatListItem.length > 0){
-					let chatListItemCounter = chatListItem.find('.unread-message');
+					let chatListItemCounter = chatListItem.find('.unread-message'),
+						chatListItemBadgeHandleStatus = chatListItem.find('.chatList-item-badgeHandleStatus'),
+						badgeHandleStatusIcon = 'ri-robot-2-line',
+						badgeHandleStatusTextColor = 'primary',
+						elemBadgeHandleStatus = '';
 					chatListItem.find('.chat-user-message').html(senderFirstName+': '+messageBodyTrim);
 
 					if(totalUnreadMessage > 0){
@@ -100,6 +107,25 @@
 						chatListItem.find('div.chatList-item-time').text('Now');
 						chatListItem.prependTo("#list-chatListData");
 					}
+
+					if(chatListItemBadgeHandleStatus.length > 0){
+						if(handleForce == 1){
+                            elemBadgeHandleStatus = '<i class="spinner-grow spinner-grow-sm text-success"></i>';
+						} else {
+							switch (handleStatus) {
+								case 2:
+									badgeHandleStatusIcon = 'ri-user-voice-line';
+									badgeHandleStatusTextColor = 'success';
+									break;
+								default:
+									badgeHandleStatusIcon = 'ri-robot-2-line';
+									badgeHandleStatusTextColor = 'primary';
+									break;
+							}
+                            elemBadgeHandleStatus = '<i class="text-' + badgeHandleStatusTextColor + ' font-size-18 ' + badgeHandleStatusIcon + '"></i>';
+						}
+						chatListItemBadgeHandleStatus.html(elemBadgeHandleStatus);
+					}
 				} else {
 					let isSearchActive = $("#filter-isSearchActive").val();
 					if(isNewMessage && !isSearchActive){
@@ -110,7 +136,7 @@
 							elemReservatioTypeTag = '',
 							addChatList = false;
 
-						if(isValidArray(arrReservationType)){
+						if(isValidArray(arrReservationType) && isValidArray(dataReservationTypeClass)){
 							elemReservatioTypeTag += '<div class="chatList-item ps-1">';
                             for (var i = 0; i < arrReservationType.length; i++) {
                                 let reservationTypeChat	= arrReservationType[i],
@@ -163,6 +189,7 @@
 							let elemLastChatThread = containerConversation.find('li:last-child'),
 								lastSenderName = elemLastChatThread.find('.conversation-name').html(),
                             	textStartClass = arrayChatThread.ISTEMPLATE ? 'text-start' : '',
+                            	isBot = parseInt(arrayChatThread.ISBOT),
 								chatContent = generateChatContent(arrayChatThread),
                         		chatContentWrap = generateChatContentWrap(chatThreadPosition, arrayChatThread, chatContent, chatTime, textStartClass);
 
@@ -173,7 +200,8 @@
 								elemConversationName.before(chatContentWrap);
 							} else {
 								let classRight = chatThreadPosition == 'L' ? '' : 'right',
-									chatThread = generateRowChatThread(classRight, senderName.charAt(0), chatContentWrap, senderName);
+									senderNameInitial = isBot == 1 ? '<i class="text-primary font-size-18 ri-robot-2-line"></i>' : senderName.charAt(0).toUpperCase(),
+									chatThread = generateRowChatThread(classRight, senderNameInitial, chatContentWrap, senderName);
 								$('#chat-conversation-ul').append(chatThread);
 							}
 							
@@ -185,6 +213,13 @@
 						}
 
 						$("#chat-timeStampLastReply").val(dateTimeLastReply);
+    					$("#chat-handleStatus").val(handleStatus);
+    					$("#chat-handleForce").val(handleForce);
+
+						if(handleForce == 0) {
+							if(handleStatus == 1) $("#chat-actionButton-activateBOT").prop('disabled', true).addClass('d-none');
+							if(handleStatus == 2) $("#chat-actionButton-activateBOT").prop('disabled', false).removeClass('d-none');
+						}
 					}
 				}
 
@@ -233,6 +268,27 @@
 			}
 		} else {
 			$("#chatUnreadCounter").remove();
+		}
+	});
+
+	onValue(forceHandleNumber, (snapshot) => {
+		let chatForceHandleNumber = snapshot.val();
+
+		if(chatForceHandleNumber > 0){
+			playStoredAudio("warning_alarm");
+			intervalIdForceHandleChatList = setInterval(function () {
+				playStoredAudio("warning_alarm");
+			}, 30000);
+
+			intervalIdForceHandleChatMenu = setInterval(function () {
+				$("#menuCHT a").addClass('splashed-border');
+				setTimeout(() => {
+					$("#menuCHT a").removeClass('splashed-border');
+				}, 500);
+			}, 1000);
+		} else {
+			if (intervalIdForceHandleChatList && intervalIdForceHandleChatList !== null) clearInterval(intervalIdForceHandleChatList);
+			if (intervalIdForceHandleChatMenu && intervalIdForceHandleChatMenu !== null) clearInterval(intervalIdForceHandleChatMenu);
 		}
 	});
 </script>

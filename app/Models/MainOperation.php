@@ -69,6 +69,30 @@ class MainOperation extends Model
         }
     }
 
+    public function insertIgnoreDataTable($tableName, $arrInsert)
+    {
+        $db     =   \Config\Database::connect();
+        try {
+            $table  =   $db->table($tableName);
+            foreach($arrInsert as $field => $value){
+                $table->set($field, $value);
+            }
+            $queryString    = $table->getCompiledInsert();
+            $queryString    = str_replace('INSERT INTO', 'INSERT IGNORE INTO', $queryString);
+
+            $db->query($queryString);
+            $insertID       =   $db->insertID();
+            $affectedRows   =   $db->affectedRows();
+
+            if($insertID > 0 || $affectedRows > 0) return ["status"=>true, "errCode"=>false, "insertID"=>$insertID];
+            return ["status"=>false, "errCode"=>1329];
+        } catch (\Throwable $th) {
+            $error		    =	$db->error();
+            $errorCode	    =	$error['code'] == 0 ? 1329 : $error['code'];
+            return ["status"=>false, "errCode"=>$errorCode, "errorMessages"=>$th];
+        }
+    }
+
     public function insertDataBatchTable($tableName, $arrInsert)
     {
         $db     =   \Config\Database::connect();
@@ -170,7 +194,8 @@ class MainOperation extends Model
         }
 
         $this->select("IDCHATTEMPLATE, IDONEMSGIO, TEMPLATECODE, TEMPLATENAME, TEMPLATELANGUAGECODE, CONTENTHEADER, CONTENTBODY,
-                        CONTENTFOOTER, CONTENTBUTTONS, PARAMETERSHEADER, PARAMETERSBODY");
+                        CONTENTFOOTER, CONTENTBUTTONS, PARAMETERSHEADER, PARAMETERSBODY, ISCRONGREETING, ISCRONRECONFIRMATION,
+                        ISCRONREVIEWREQUEST, ISQUESTION");
         $this->from('t_chattemplate', true);
         if($templateType != 0) $this->where($columnConditionType, true);
         if($templateName != '') $this->where('TEMPLATENAME', $templateName);
@@ -187,6 +212,7 @@ class MainOperation extends Model
         $idChatList         =   $this->getIdChatList($idContact);
         $idChatThreadType   =   isset($arrAdditionalThread['idChatThreadType']) && is_numeric($arrAdditionalThread['idChatThreadType']) ? $arrAdditionalThread['idChatThreadType'] : 1;
         $forceUpdate        =   isset($arrAdditionalThread['forceUpdate']) ? $arrAdditionalThread['forceUpdate'] : false;
+        $handleStatus       =   isset($arrAdditionalThread['handleStatus']) ? $arrAdditionalThread['handleStatus'] : -1;
         $messageHeader      =   isset($messageGenerated['header']) ? $messageGenerated['header'] : '';
         $messageBody        =   isset($messageGenerated['body']) ? $messageGenerated['body'] : $messageGenerated;
         $messageFooter      =   isset($messageGenerated['footer']) ? $messageGenerated['footer'] : '';
@@ -208,6 +234,7 @@ class MainOperation extends Model
             "DATETIMELASTMESSAGE"   =>  $currentTimeStamp
         ];
 
+        if($handleStatus != -1) $arrInsertUpdateChatList['HANDLESTATUS'] = $handleStatus;
         if($idChatList) {
             $arrInsertUpdateChatList['TOTALUNREADMESSAGE']  =   $this->getTotalUnreadMessageChat($idChatList);
             $this->updateDataTable('t_chatlist', $arrInsertUpdateChatList, ['IDCHATLIST' => $idChatList]);
@@ -235,6 +262,7 @@ class MainOperation extends Model
                 if(isset($arrAdditionalThread['quotedMsgId'])) $arrInsertChatThread['IDMESSAGEQUOTED'] = $arrAdditionalThread['quotedMsgId'];
                 if(isset($arrAdditionalThread['caption'])) $arrInsertChatThread['CHATCAPTION'] = $arrAdditionalThread['caption'];
                 if(isset($arrAdditionalThread['isForwarded'])) $arrInsertChatThread['ISFORWARDED'] = $arrAdditionalThread['isForwarded'];
+                if(isset($arrAdditionalThread['isBOT'])) $arrInsertChatThread['ISBOT'] = $arrAdditionalThread['isBOT'];
             }
 
             $detailChatThread   =   $this->getDetailThreadByMessageId($idMessage);
@@ -359,7 +387,9 @@ class MainOperation extends Model
             $chatThreadPosition     =   $detailChatListStats['CHATTHREADPOSITION'];
             $idUserAdmin            =   $detailChatListStats['IDUSERADMIN'];
             $idChatThreadType       =   $detailChatListStats['IDCHATTHREADTYPE'];
-            $arrReservationTypeStr  =   $detailChatListStats['ARRRESERVATIONTYPE'];
+            $arrReservationTypeStr  =   $detailChatListStats['ARRIDRESERVATIONTYPE'];
+            $handleStatus           =   $detailChatListStats['HANDLESTATUS'];
+            $handleForce            =   $detailChatListStats['HANDLEFORCE'];
             $lastMessageChatList    =   $lastMessage;
             $messageQuoted          =   $messageQuotedSender    =  '';
 
@@ -392,12 +422,11 @@ class MainOperation extends Model
                 $lastMessageTrim    =   $lastMessageChatList;
             }
 
-            $arrReservationType     =   [];
             if($arrReservationTypeStr != ''){
-                $arrReservationTypeExplode  =   explode(',', $arrReservationTypeStr);
-                foreach($arrReservationTypeExplode as $idReservationType){
-                    $arrReservationType[]   =   hashidEncode($idReservationType, true);
-                }
+                $arrReservationType =   json_decode($arrReservationTypeStr, true);
+                $arrReservationType =   array_filter(array_map(function($idReservationType) {
+                    return hashidEncode($idReservationType, true);
+                }, $arrReservationType));
             }
 
             if($idMessageQuoted != ""){
@@ -418,6 +447,8 @@ class MainOperation extends Model
                 'idUserAdmin'       =>  $idUserAdminEncoded,
                 'arrReservationType'=>  $arrReservationType,
                 'isNewMessage'      =>  $isNewMessage,
+                'handleStatus'      =>  $handleStatus,
+                'handleForce'       =>  $handleForce,
                 'messageBodyTrim'   =>  $lastMessageTrim,
                 'timestamp'         =>  $timeStampRTDB,
                 'dateTimeLastReply' =>  is_null($dateTimeLastReply) ? 0 : $dateTimeLastReply,
@@ -441,15 +472,19 @@ class MainOperation extends Model
                         'DATETIMEDELIVERED'     =>  null,
                         'DATETIMEREAD'          =>  null,
                         'ISFORWARDED'           =>  $detailChatListStats['ISFORWARDED'],
-                        'ISTEMPLATE'            =>  $detailChatListStats['ISTEMPLATE']
+                        'ISTEMPLATE'            =>  $detailChatListStats['ISTEMPLATE'],
+                        'ISBOT'                 =>  $detailChatListStats['ISBOT']
                     ]
                 ]
             ];
 
-            $firebaseRTDB->updateRealtimeDatabaseValue('lastUpdateChat', $arrUpdateReferenceRTDB);
-    
-            $unreadChatNumber   =   $this->getTotalUnreadChat();
-            $firebaseRTDB->updateRealtimeDatabaseValue('unreadChatNumber', $unreadChatNumber);
+            $firebaseRTDB->updateRealtimeDatabaseMultiValue(
+                [
+                    'lastUpdateChat'        =>  $arrUpdateReferenceRTDB,
+                    'unreadChatNumber'      =>  $this->getTotalUnreadChat(),
+                    'forceHandleNumber'     =>  $this->getTotalForceHandle()
+                ]
+            );
         }
     }
 
@@ -457,13 +492,12 @@ class MainOperation extends Model
     {
         $this->select("SUM(IF(A.STATUSREAD = 0, 1, 0)) AS TOTALUNREADMESSAGE, AA.CHATCONTENTHEADER, AA.CHATCONTENTBODY AS LASTMESSAGE, AA. CHATCONTENTFOOTER,
                 AA.CHATCAPTION, MAX(A.DATETIMECHAT) AS DATETIMELASTMESSAGE, MAX(IF(A.IDUSERADMIN = 0, A.DATETIMECHAT, NULL)) AS DATETIMELASTREPLY, C.NAMEFULL,
-                IF(AA.IDUSERADMIN = 0, C.NAMEFULL, D.NAME) AS SENDERNAME, IF(AA.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION,
-                IF(AA.IDUSERADMIN = 0, SUBSTRING_INDEX(C.NAMEFULL, ' ', 1), SUBSTRING_INDEX(D.NAME, ' ', 1)) AS SENDERFIRSTNAME,
-                AA.IDMESSAGE, AA.IDCHATTHREAD, AA.IDCHATTHREADTYPE, AA.IDMESSAGEQUOTED, AA.ISFORWARDED, AA.ISTEMPLATE, AA.IDUSERADMIN,
-                IFNULL(GROUP_CONCAT(DISTINCT E.IDRESERVATIONTYPE ORDER BY E.IDRESERVATIONTYPE), '') AS ARRRESERVATIONTYPE");
+                IF(AA.IDUSERADMIN = 0, C.NAMEFULL, IF(AA.ISBOT = 0, D.NAME, CONCAT(D.NAME, ' (Bot)'))) AS SENDERNAME, IF(AA.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION,
+                IF(AA.IDUSERADMIN = 0, SUBSTRING_INDEX(C.NAMEFULL, ' ', 1), SUBSTRING_INDEX(D.NAME, ' ', 1)) AS SENDERFIRSTNAME, AA.IDMESSAGE, AA.IDCHATTHREAD,
+                AA.IDCHATTHREADTYPE, AA.IDMESSAGEQUOTED, AA.ISFORWARDED, AA.ISTEMPLATE, AA.ISBOT, AA.IDUSERADMIN, C.ARRIDRESERVATIONTYPE, B.HANDLESTATUS, B.HANDLEFORCE");
         $this->from('t_chatthread A', true);
         $this->join("(SELECT IDCHATLIST, IDMESSAGE, IDCHATTHREAD, IDCHATTHREADTYPE, IDMESSAGEQUOTED, IDUSERADMIN, CHATCONTENTHEADER, CHATCONTENTBODY, CHATCONTENTFOOTER,
-                        CHATCAPTION, ISFORWARDED, ISTEMPLATE
+                        CHATCAPTION, ISFORWARDED, ISTEMPLATE, ISBOT
                       FROM t_chatthread 
                       WHERE IDCHATLIST = '".$idChatList."' 
                       ORDER BY DATETIMECHAT DESC 
@@ -471,12 +505,12 @@ class MainOperation extends Model
         $this->join('t_chatlist AS B', 'A.IDCHATLIST = B.IDCHATLIST', 'LEFT');
         $this->join('t_contact AS C', 'B.IDCONTACT = C.IDCONTACT', 'LEFT');
         $this->join('m_useradmin AS D', 'AA.IDUSERADMIN = D.IDUSERADMIN', 'LEFT');
-        $this->join(APP_MAIN_DATABASE_NAME.'.t_reservation AS E', 'B.IDCONTACT = E.IDCONTACT', 'LEFT');
         $this->where('A.IDCHATLIST', $idChatList);
         $this->groupBy('A.IDCHATLIST');
         $this->orderBy('A.DATETIMECHAT DESC');
 
         $row    =   $this->get()->getRowArray();
+        log_message('debug', $this->getLastQuery());
         if(is_null($row)) return [];
         return $row;
     }
@@ -490,6 +524,17 @@ class MainOperation extends Model
         $row    =   $this->get()->getRowArray();
         if(is_null($row)) return 0;
 		return $row['TOTALUNREADCHAT'];
+	}
+
+    public function getTotalForceHandle() : int
+    {
+        $this->select("COUNT(IDCHATLIST) AS TOTALFORCEHANDLE");
+        $this->from('t_chatlist', true);
+        $this->where('HANDLEFORCE = ', 1);
+
+        $row    =   $this->get()->getRowArray();
+        if(is_null($row)) return 0;
+		return $row['TOTALFORCEHANDLE'];
 	}
     
     public function getDataCountryCodeByPhoneNumber($phoneNumber) : array

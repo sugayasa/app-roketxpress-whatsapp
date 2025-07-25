@@ -116,7 +116,10 @@ class Webhook extends ResourceController
                     if(!is_null($idContact)) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 0, $arrAdditionalThread);
                 } else {
                     $isMessageIdExist =   $cronModel->isMessageIdExist($messageId);
-                    if(!$isMessageIdExist) $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 1, $arrAdditionalThread);
+                    if(!$isMessageIdExist) {
+                        $arrAdditionalThread['isBOT']   =   true;
+                        $mainOperation->insertUpdateChatTable($timeStamp, $idContact, $messageId, $messageBody, 1, $arrAdditionalThread);
+                    }
                 }
 
                 if(!is_null($idContact)) $mainOperation->updateDataTable('t_contact', ['PHONENUMBERZEROPREFIX' => $isZeroPrefixNumber], ['IDCONTACT' => $idContact]);
@@ -197,5 +200,74 @@ class Webhook extends ResourceController
         $mainOperation->insertDataTable('log_webhook', $arrInsert);
 
         return true;
+    }
+
+    public function handleForceHuman()
+    {
+        $signatureHeader=   $this->request->header('BST-Signature');
+
+        if (!isset($signatureHeader) || is_null($signatureHeader) || $signatureHeader === '') return $this->failUnauthorized('Signature header is missing');
+
+        $signatureHeader=   $signatureHeader->getValueLine();
+        $params         =   $this->request->getJSON(true);
+        $timeStamp      =   $this->epochDatetime;
+        $timeStampMin   =   $timeStamp - 120;
+        $timeStampMax   =   $timeStamp + 120;
+        $isValidRequest =   false;
+
+        for($timeStampCheck = $timeStampMin; $timeStampCheck <= $timeStampMax; $timeStampCheck++) {
+            $dataRequest    =   array_merge($params, ['timestamp' => $timeStampCheck]);
+            $dataJSON       =   json_encode($dataRequest);
+            $privateKey     =   ECOMMERCE_PRIVATE_KEY;
+            $hmacSignature  =   hash_hmac('sha256', $dataJSON, $privateKey);
+
+            if ($hmacSignature === $signatureHeader) {
+                $isValidRequest = true;
+                break;
+            }
+        }
+
+        if (!$isValidRequest) return throwResponseForbidden('Invalid signature');
+
+        $phoneNumber        =   $params['phoneNumber'] ?? null;
+
+        if (is_null($phoneNumber) || $phoneNumber === '') return throwResponseNotAcceptable('Phone number is required');
+
+        $mainOperation      =   new MainOperation();
+        $phoneNumber        =	preg_replace('/[^0-9]/', '', $phoneNumber);
+        $phoneNumberBase    =   $this->getDataPhoneNumberBase($phoneNumber);
+        $idCountry          =   $phoneNumberBase['idCountry'] ?? 0;
+        $phoneNumberBase    =   $phoneNumberBase['phoneNumberBase'] ?? $phoneNumber;
+        $detailChatList     =   $mainOperation->getDetailChatListByPhoneNumber($idCountry, $phoneNumberBase);
+        $idChatList         =   $detailChatList['IDCHATLIST'] ?? null;
+
+        if (is_null($idChatList) || $idChatList === '') return throwResponseNotAcceptable('Unkown contact, invalid phone number');
+        $arrUpdateChatList  =   [
+            'HANDLEFORCE'   =>  1,
+            'HANDLESTATUS'  =>  2
+        ];
+        $procUpdate         =   $mainOperation->updateDataTable('t_chatlist', $arrUpdateChatList, ['IDCHATLIST' => $idChatList]);
+        
+        if(!$procUpdate['status']) {
+            if($procUpdate['errCode'] === 1329) {
+                return throwResponseOK('Force handle already exists');
+            } else {
+                return switchMySQLErrorCode($procUpdate['errCode']);
+            }
+        }
+
+        $mainOperation->updateChatListAndRTDBStats($idChatList, false);
+        return throwResponseOK('Force handle updated successfully');
+    }
+
+    public function getSignature()
+    {
+        $dataRequest    =   $this->request->getJSON(true);
+        $dataRequest    =   !isset($dataRequest['timestamp']) || $dataRequest['timestamp'] === '' ? array_merge($dataRequest, ['timestamp' => $this->epochDatetime]) : $dataRequest;
+        $dataJSON       =   json_encode($dataRequest);
+        $privateKey     =   ECOMMERCE_PRIVATE_KEY;
+        $hmacSignature  =   hash_hmac('sha256', $dataJSON, $privateKey);
+
+        return throwResponseOK('Signature retrieved successfully', ['signature' => $hmacSignature, 'dataRequest' => $dataRequest]);
     }
 }

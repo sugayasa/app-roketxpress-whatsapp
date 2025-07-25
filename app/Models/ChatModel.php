@@ -44,7 +44,7 @@ class ChatModel extends Model
         $pageOffset     =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATLIST, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, A.LASTSENDERFIRSTNAME, B.NAMEFULL, A.TOTALUNREADMESSAGE,
                 A.LASTMESSAGE, A.DATETIMELASTMESSAGE, '' AS DATETIMELASTMESSAGESTR, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY,
-                B.ARRIDRESERVATIONTYPE");
+                B.ARRIDRESERVATIONTYPE, A.HANDLESTATUS, A.HANDLEFORCE");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
 
@@ -63,6 +63,7 @@ class ChatModel extends Model
                             $this->where('A.TOTALUNREADMESSAGE > ', 0);
                             $this->groupStart();
                             $this->where("B.ARRIDRESERVATIONTYPE", "");
+                            $this->orWhere("B.ARRIDRESERVATIONTYPE IS NULL");
                             foreach($arrReservationType as $index => $idReservationType){
                                 $this->orWhere("JSON_CONTAINS(B.ARRIDRESERVATIONTYPE, $idReservationType, '$')", null, false);
                             }
@@ -98,9 +99,9 @@ class ChatModel extends Model
 
     public function getDetailContactChat($idChatList)
     {	
-        $this->select("LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, B.PHONENUMBER, C.COUNTRYNAME, D.CONTINENTNAME,
-                    IF(B.EMAILS = '' OR B.EMAILS IS NULL, '-', B.EMAILS) AS EMAILS, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY,
-                    A.IDCONTACT");
+        $this->select("A.HANDLESTATUS, A.HANDLEFORCE, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, B.PHONENUMBER, C.COUNTRYNAME,
+                    D.CONTINENTNAME, IF(B.EMAILS = '' OR B.EMAILS IS NULL, '-', B.EMAILS) AS EMAILS, IFNULL(A.DATETIMELASTREPLY, 0) AS DATETIMELASTREPLY,
+                    A.IDCONTACT, A.TOTALUNREADMESSAGE");
         $this->from('t_chatlist A', true);
         $this->join('t_contact AS B', 'A.IDCONTACT = B.IDCONTACT', 'LEFT');
         $this->join('m_country AS C', 'B.IDCOUNTRY = C.IDCOUNTRY', 'LEFT');
@@ -119,8 +120,8 @@ class ChatModel extends Model
         $pageOffset =   ($page - 1) * $dataPerPage;
         $this->select("A.IDCHATTHREAD, A.IDMESSAGE, A.IDMESSAGEQUOTED, A.IDCHATTHREADTYPE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME,
                     A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER, A.DATETIMECHAT, '' AS CHATTIME, '' AS DAYTITLE, '' AS MESSAGEQUOTED, 'Auto System' AS MESSAGEQUOTEDSENDER,
-                    A.STATUSREAD, A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, B.NAME) AS USERNAMECHAT,
-                    IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.CHATCAPTION, A.ISFORWARDED, A.ISTEMPLATE,
+                    A.STATUSREAD, A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, IF(A.ISBOT = 0, B.NAME, CONCAT(B.NAME, ' (Bot)'))) AS USERNAMECHAT,
+                    IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.CHATCAPTION, A.ISFORWARDED, A.ISTEMPLATE, A.ISBOT,
                     IFNULL(CONCAT('[', GROUP_CONCAT(E.IDUSERADMIN), ']'), '[]') AS ARRIDUSERADMINREAD");
         $this->from('t_chatthread A', true);
         $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
@@ -213,6 +214,21 @@ class ChatModel extends Model
 
         $result     =   $this->get()->getResultObject();
         if(is_null($result)) return [];
+        return $result;
+    }
+
+    public function getDataChatThreadByContactWithLimit($idChatList, $limit)
+    {	
+        $this->select("IDCHATTHREAD");
+        $this->from('t_chatthread', true);
+        $this->where('IDCHATLIST', $idChatList);
+        $this->where('IDUSERADMIN', 0);
+        $this->orderBy('DATETIMECHAT DESC');
+        $this->limit($limit, 0);
+
+        $result     =   $this->get()->getResultObject();
+
+        if(is_null($result)) return false;
         return $result;
     }
 }

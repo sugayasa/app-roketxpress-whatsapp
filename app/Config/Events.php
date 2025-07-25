@@ -4,6 +4,8 @@ namespace Config;
 
 use CodeIgniter\Events\Events;
 use CodeIgniter\Exceptions\FrameworkException;
+use CodeIgniter\Log\Logger;
+use CodeIgniter\Database\Query;
 
 /*
  * --------------------------------------------------------------------
@@ -44,5 +46,19 @@ Events::on('pre_system', static function () {
     if (CI_DEBUG && ! is_cli()) {
         Events::on('DBQuery', 'CodeIgniter\Debug\Toolbar\Collectors\Database::collect');
         Services::toolbar()->respond();
+    }
+});
+
+Events::on('DBQuery', static function (Query $query) {
+    $sql            =   $query->getQuery();
+    $duration       =   $query->getDuration();
+    $errorMessage   =   $query->hasError() ? ' - Error: ' . $query->getErrorMessage() : '';
+
+    if ($duration > 0.2) {
+        log_message('info', 'SQL Query: {query} - Duration: {duration} seconds {error}', [
+            'query'     => $sql,
+            'duration'  => $duration,
+            'error'     => $errorMessage
+        ]);
     }
 });

@@ -97,7 +97,6 @@ class Chat extends ResourceController
                             "dataChatList"  =>  $dataChatList,
                             "loadMoreData"  =>  $loadMoreData
                         ]);
-                        error_log(json_last_error_msg());
         } else {
             return throwResponseNotFound('No conversation found');
         }
@@ -124,58 +123,11 @@ class Chat extends ResourceController
         $idChatList         =   $this->request->getVar('idChatList');
         $idChatList         =   hashidDecode($idChatList, true);
         $page               =   $this->request->getVar('page');
-        $idUserAdmin        =   $this->userData->idUserAdmin;
-        $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
         $detailContact      =   $chatModel->getDetailContactChat($idChatList);
         $listChatThread     =   $chatModel->getListChatThread($idChatList, $page);
-        $dateNow            =   new Time('now');
-        $dateToday          =   $dateNow->format('Y-m-d');
-        $dateYesterday      =   $dateNow->modify('-1 day')->format('Y-m-d');
 
         if($listChatThread){
-            foreach($listChatThread as $keyChatThread){
-                $idMessageQuoted=   $keyChatThread->IDMESSAGEQUOTED;
-                $dateTimeChat   =   $keyChatThread->DATETIMECHAT;
-                $dateTimeChatTF =   Time::createFromTimestamp($dateTimeChat, 'UTC')->setTimezone($userTimeZoneOffset);
-                $chatDate       =   $dateTimeChatTF->toDateString();
-
-                $keyChatThread->CHATTIME    =   $dateTimeChatTF->toLocalizedString('H:mm');
-                if($chatDate == $dateToday){
-                    $keyChatThread->DAYTITLE    =   'Today';
-                } else if($chatDate == $dateYesterday) {
-                    $keyChatThread->DAYTITLE    =   'Yesterday';
-                } else {
-                    $keyChatThread->DAYTITLE    =   $dateTimeChatTF->toLocalizedString('d MMM Y');
-                }
-
-                $idChatThread       =   $keyChatThread->IDCHATTHREAD;
-                $arrIdUserAdminRead =   $keyChatThread->ARRIDUSERADMINREAD;
-                $arrIdUserAdminRead =   json_decode($arrIdUserAdminRead, true);
-                $isIdUserAdminExists=   in_array($idUserAdmin, $arrIdUserAdminRead);
-
-                if(!$isIdUserAdminExists){
-                    $arrInsertChatDetailRead    =   [
-                        'IDUSERADMIN'     =>  $idUserAdmin,
-                        'IDCHATTHREAD'    =>  $idChatThread,
-                        'DATETIMEREAD'    =>  $this->currentTimeStamp
-                    ];
-                    $mainOperation->insertDataTable('t_chatdetailread', $arrInsertChatDetailRead);
-                }
-
-                $mainOperation->updateDataTable('t_chatthread', ['STATUSREAD' => 1], ['IDCHATTHREAD' => $idChatThread]);
-                unset($keyChatThread->ARRIDUSERADMINREAD);
-
-                if($idMessageQuoted != ""){
-                    $messageQuotedDetail    =   $mainOperation->getMessageQuotedDetail($idMessageQuoted);
-                    $messageQuoted          =   $messageQuotedDetail['MESSAGEQUOTED'] ?? '';
-
-                    if($messageQuoted != ""){
-                        $messageQuotedArr               =   explode("\n", $messageQuoted);
-                        $keyChatThread->MESSAGEQUOTED   =   strlen($messageQuotedArr[0]) > 50 ? substr($messageQuotedArr[0], 0, 50)."..." : $messageQuotedArr[0];
-                    }
-                    $keyChatThread->MESSAGEQUOTEDSENDER   =   $messageQuotedDetail['MESSAGEQUOTEDSENDER'] ?? '-';
-                }
-            }
+            $listChatThread =   $this->generateListChatThread($listChatThread, true);
             $listChatThread =   encodeDatabaseObjectResultKey($listChatThread, 'IDCHATTHREAD', true);
             $mainOperation->updateChatListAndRTDBStats($idChatList, false);
         }
@@ -222,33 +174,70 @@ class Chat extends ResourceController
         if(!$listChatThread){
             return throwResponseNotFound('No more conversation found');
         } else {
-            $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
-            $dateNow            =   new Time('now');
-            $dateToday          =   $dateNow->format('Y-m-d');
-            $dateYesterday      =   $dateNow->modify('-1 day')->format('Y-m-d');
-    
-            foreach($listChatThread as $keyChatThread){
-                $dateTimeChat   =   $keyChatThread->DATETIMECHAT;
-                $dateTimeChatTF =   Time::createFromTimestamp($dateTimeChat, 'UTC')->setTimezone($userTimeZoneOffset);
-                $chatDate       =   $dateTimeChatTF->toDateString();
-
-                $keyChatThread->CHATTIME    =   $dateTimeChatTF->toLocalizedString('H:mm');
-                if($chatDate == $dateToday){
-                    $keyChatThread->DAYTITLE    =   'Today';
-                } else if($chatDate == $dateYesterday) {
-                    $keyChatThread->DAYTITLE    =   'Yesterday';
-                } else {
-                    $keyChatThread->DAYTITLE    =   $dateTimeChatTF->toLocalizedString('d MMM Y');
-                }
-
-            }
-
+            $listChatThread =   $this->generateListChatThread($listChatThread);
             $listChatThread =   encodeDatabaseObjectResultKey($listChatThread, 'IDCHATTHREAD', true);
             return $this->setResponseFormat('json')
                         ->respond([
                             "listChatThread"    =>  array_reverse($listChatThread),
                          ]);
         }
+    }
+
+    private function generateListChatThread($listChatThread, $updateDetailRead = false)
+    {
+        $mainOperation      =   new MainOperation();
+        $idUserAdmin        =   $this->userData->idUserAdmin;
+        $userTimeZoneOffset =   $this->userData->userTimeZoneOffset;
+        $dateNow            =   new Time('now');
+        $dateToday          =   $dateNow->format('Y-m-d');
+        $dateYesterday      =   $dateNow->modify('-1 day')->format('Y-m-d');
+
+        foreach($listChatThread as $keyChatThread){
+            $idMessageQuoted=   $keyChatThread->IDMESSAGEQUOTED;
+            $dateTimeChat   =   $keyChatThread->DATETIMECHAT;
+            $dateTimeChatTF =   Time::createFromTimestamp($dateTimeChat, 'UTC')->setTimezone($userTimeZoneOffset);
+            $chatDate       =   $dateTimeChatTF->toDateString();
+
+            $keyChatThread->CHATTIME    =   $dateTimeChatTF->toLocalizedString('H:mm');
+            if($chatDate == $dateToday){
+                $keyChatThread->DAYTITLE    =   'Today';
+            } else if($chatDate == $dateYesterday) {
+                $keyChatThread->DAYTITLE    =   'Yesterday';
+            } else {
+                $keyChatThread->DAYTITLE    =   $dateTimeChatTF->toLocalizedString('d MMM Y');
+            }
+
+            if($updateDetailRead){
+                $idChatThread       =   $keyChatThread->IDCHATTHREAD;
+                $arrIdUserAdminRead =   $keyChatThread->ARRIDUSERADMINREAD;
+                $arrIdUserAdminRead =   json_decode($arrIdUserAdminRead, true);
+                $isIdUserAdminExists=   in_array($idUserAdmin, $arrIdUserAdminRead);
+
+                if(!$isIdUserAdminExists){
+                    $arrInsertChatDetailRead    =   [
+                        'IDUSERADMIN'     =>  $idUserAdmin,
+                        'IDCHATTHREAD'    =>  $idChatThread,
+                        'DATETIMEREAD'    =>  $this->currentTimeStamp
+                    ];
+                    $mainOperation->insertDataTable('t_chatdetailread', $arrInsertChatDetailRead);
+                }
+
+                $mainOperation->updateDataTable('t_chatthread', ['STATUSREAD' => 1], ['IDCHATTHREAD' => $idChatThread]);
+                unset($keyChatThread->ARRIDUSERADMINREAD);
+            }
+
+            if($idMessageQuoted != ""){
+                $messageQuotedDetail    =   $mainOperation->getMessageQuotedDetail($idMessageQuoted);
+                $messageQuoted          =   $messageQuotedDetail['MESSAGEQUOTED'] ?? '';
+
+                if($messageQuoted != ""){
+                    $messageQuotedArr               =   explode("\n", $messageQuoted);
+                    $keyChatThread->MESSAGEQUOTED   =   strlen($messageQuotedArr[0]) > 50 ? substr($messageQuotedArr[0], 0, 50)."..." : $messageQuotedArr[0];
+                }
+                $keyChatThread->MESSAGEQUOTEDSENDER   =   $messageQuotedDetail['MESSAGEQUOTEDSENDER'] ?? '-';
+            }
+        }
+        return $listChatThread;
     }
 
     public function getDetailThreadACK()
@@ -287,12 +276,17 @@ class Chat extends ResourceController
         $currentTimeStamp   =   $this->currentTimeStamp;
         $rules              =   [
             'idContact'     =>  ['label' => 'Id Contact', 'rules' => 'required|alpha_numeric'],
+            'idChatList'    =>  ['label' => 'Id Chat List', 'rules' => 'required|alpha_numeric'],
             'phoneNumber'   =>  ['label' => 'Phone Number', 'rules' => 'required|numeric'],
             'message'       =>  ['label' => 'Message', 'rules' => 'required']
         ];
 
         $messages       =   [
             'idContact'     => [
+                'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ],
+            'idChatList'    => [
                 'required'      => 'Invalid data sent',
                 'alpha_numeric' => 'Invalid data sent'
             ],
@@ -309,6 +303,8 @@ class Chat extends ResourceController
 
         $idContact          =   $this->request->getVar('idContact');
         $idContact          =   hashidDecode($idContact);
+        $idChatList         =   $this->request->getVar('idChatList');
+        $idChatList         =   hashidDecode($idChatList, true);
         $idMessageQuoted    =   $this->request->getVar('idMessageQuoted');
         $phoneNumber        =   $this->request->getVar('phoneNumber');
         $phoneNumber        =   preg_replace('/[^0-9]/', '', $phoneNumber);
@@ -329,6 +325,7 @@ class Chat extends ResourceController
         } else {
             $idMessage  =   $sendResult['idMessage'];
             $idUserAdmin=   $this->userData->idUserAdmin;
+            $mainOperation->updateDataTable('t_chatlist', ['HANDLESTATUS' => 2, 'HANDLEFORCE' => 0], ['IDCHATLIST' => $idChatList]);
             $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $message, $idUserAdmin);
 
             return throwResponseOK('Message sent successfully', [
@@ -355,9 +352,50 @@ class Chat extends ResourceController
                     'DATETIMEREAD'    =>  $this->currentTimeStamp
                 ];
 
-                $mainOperation->insertDataTable('t_chatdetailread', $arrInsertChatDetailRead);
+                $mainOperation->insertIgnoreDataTable('t_chatdetailread', $arrInsertChatDetailRead);
                 $mainOperation->updateDataTable('t_chatthread', ['STATUSREAD' => 1], ['IDCHATTHREAD' => $idChatThread]);
             }
+        }
+
+        $mainOperation->updateChatListAndRTDBStats($idChatList, false);
+        return throwResponseOK('Unread message count updated successfully');
+    }
+
+    public function setActiveHandleStatus()
+    {
+        $mainOperation  =   new MainOperation();
+        $handleStatus   =   $this->request->getVar('handleStatus');
+        $idChatList     =   $this->request->getVar('idChatList');
+        $idChatList     =   hashidDecode($idChatList, true);
+
+        if(!$idChatList) return throwResponseNotFound('Failed to update chat handle status');
+
+        $mainOperation->updateDataTable('t_chatlist', ['HANDLESTATUS' => $handleStatus], ['IDCHATLIST' => $idChatList]);
+        $mainOperation->updateChatListAndRTDBStats($idChatList, false);
+        ////add hit API BOT, set handle status to 2 (human) or 1 (bot)
+        return throwResponseOK('Handle status updated successfully');
+    }
+
+    public function setMarkAsUnread()
+    {
+        $mainOperation      =   new MainOperation();
+        $chatModel          =   new ChatModel();
+        $idChatList         =   $this->request->getVar('idChatList');
+        $idChatList         =   hashidDecode($idChatList, true);
+        $totalUnreadMessage =   $this->request->getVar('totalUnreadMessage');
+        $dataChatThread     =   $chatModel->getDataChatThreadByContactWithLimit($idChatList, $totalUnreadMessage);
+
+        if($dataChatThread){
+            foreach($dataChatThread as $keyChatThread){
+                $idChatThread           =   $keyChatThread->IDCHATTHREAD;
+                $arrUpdateChatThread    =   [
+                    'DATETIMEREAD'  =>  null,
+                    'STATUSREAD'    =>  0
+                ];
+
+                $mainOperation->updateDataTable('t_chatthread', $arrUpdateChatThread, ['IDCHATTHREAD' => $idChatThread]);
+            }
+            $mainOperation->updateDataTable('t_chatlist', ['TOTALUNREADMESSAGE' => $totalUnreadMessage], ['IDCHATLIST' => $idChatList]);
         }
 
         $mainOperation->updateChatListAndRTDBStats($idChatList, false);
