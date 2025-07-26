@@ -47,7 +47,7 @@ $routes->post('access/saveDetailProfileSetting', 'Access::saveDetailProfileSetti
 
 $routes->get('cron/execChatCron', 'Cron::execChatCron');
 $routes->post('webhook/whatsapp/oneMsgIO', 'Webhook::whatsappOneMsgIO');
-$routes->post('webhook/whatsapp/handleForceHuman', 'Webhook::handleForceHuman');
+$routes->post('webhook/whatsapp/handleHuman', 'Webhook::handleHuman');
 $routes->post('webhook/whatsapp/getSignature', 'Webhook::getSignature');
 
 $routes->post('view/chat', 'View::chat', ['filter' => 'auth:mustBeLoggedIn']);

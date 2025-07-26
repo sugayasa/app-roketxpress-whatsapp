@@ -202,7 +202,7 @@ class Webhook extends ResourceController
         return true;
     }
 
-    public function handleForceHuman()
+    public function handleHuman()
     {
         $signatureHeader=   $this->request->header('BST-Signature');
 
@@ -263,7 +263,15 @@ class Webhook extends ResourceController
     public function getSignature()
     {
         $dataRequest    =   $this->request->getJSON(true);
-        $dataRequest    =   !isset($dataRequest['timestamp']) || $dataRequest['timestamp'] === '' ? array_merge($dataRequest, ['timestamp' => $this->epochDatetime]) : $dataRequest;
+
+        if(!isset($dataRequest['timestamp']) || is_null($dataRequest['timestamp']) || $dataRequest['timestamp'] === '') {
+            return throwResponseNotAcceptable('Timestamp is required');
+        }
+
+        if(!isset($dataRequest['phoneNumber']) || is_null($dataRequest['phoneNumber']) || $dataRequest['phoneNumber'] === '') {
+            return throwResponseNotAcceptable('Phone number is required');
+        }
+
         $dataJSON       =   json_encode($dataRequest);
         $privateKey     =   ECOMMERCE_PRIVATE_KEY;
         $hmacSignature  =   hash_hmac('sha256', $dataJSON, $privateKey);
