@@ -214,11 +214,11 @@ class Webhook extends ResourceController
         $timeStampMin   =   $timeStamp - 120;
         $timeStampMax   =   $timeStamp + 120;
         $isValidRequest =   false;
-
+        $privateKey     =   ECOMMERCE_PRIVATE_KEY;
+        
         for($timeStampCheck = $timeStampMin; $timeStampCheck <= $timeStampMax; $timeStampCheck++) {
             $dataRequest    =   array_merge($params, ['timestamp' => $timeStampCheck]);
             $dataJSON       =   json_encode($dataRequest);
-            $privateKey     =   ECOMMERCE_PRIVATE_KEY;
             $hmacSignature  =   hash_hmac('sha256', $dataJSON, $privateKey);
 
             if ($hmacSignature === $signatureHeader) {
