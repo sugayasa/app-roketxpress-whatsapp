@@ -7,6 +7,7 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use CodeIgniter\I18n\Time;
+use App\Libraries\AIBot;
 use App\Libraries\OneMsgIO;
 use App\Models\MainOperation;
 use App\Models\ContactModel;
