@@ -188,8 +188,9 @@ class Contact extends ResourceController
 
         if(!$this->validate($rules, $messages)) return $this->fail($this->validator->getErrors());
 
-        $mainOperation              =   new MainOperation();
+        $aiBot                      =   new AIBot();
         $oneMsgIO                   =   new OneMsgIO();
+        $mainOperation              =   new MainOperation();
         $currentTimeStamp           =   $this->currentTimeStamp;
         $idContact                  =   $this->request->getVar('idContact');
         $phoneNumber                =   $this->request->getVar('phoneNumber');
@@ -242,7 +243,7 @@ class Contact extends ResourceController
             
             if($isQuestion || $isQuestion == 1) {
                 $handleStatus = 2;
-                ////add hit API BOT, set handle status to 2 (human) 
+                $aiBot->changeHandleStatus(($handleStatus - 1), $phoneNumber);
             }
 
             if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin, ['forceUpdate' => true, 'handleStatus' => $handleStatus]);

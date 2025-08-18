@@ -7,6 +7,7 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use CodeIgniter\I18n\Time;
+use App\Libraries\AIBot;
 use App\Libraries\OneMsgIO;
 use App\Models\MainOperation;
 use App\Models\ChatModel;
@@ -363,16 +364,20 @@ class Chat extends ResourceController
 
     public function setActiveHandleStatus()
     {
+        $aiBot          =   new AIBot();
         $mainOperation  =   new MainOperation();
         $handleStatus   =   $this->request->getVar('handleStatus');
         $idChatList     =   $this->request->getVar('idChatList');
         $idChatList     =   hashidDecode($idChatList, true);
+        $idContact      =   $this->request->getVar('idContact');
+        $idContact      =   hashidDecode($idContact);
+        $phoneNumber    =   $mainOperation->getActivePhoneNumber($idContact);
 
-        if(!$idChatList) return throwResponseNotFound('Failed to update chat handle status');
+        if(!$idChatList || $idChatList <= 0 || !$idContact || $idContact <= 0 || is_null($phoneNumber)) return throwResponseNotFound('Failed to update chat handle status', ['$idChatList'=>$idChatList, '$idContact'=>$idContact, '$phoneNumber'=>$phoneNumber]);
 
         $mainOperation->updateDataTable('t_chatlist', ['HANDLESTATUS' => $handleStatus], ['IDCHATLIST' => $idChatList]);
         $mainOperation->updateChatListAndRTDBStats($idChatList, false);
-        ////add hit API BOT, set handle status to 2 (human) or 1 (bot)
+        $aiBot->changeHandleStatus(($handleStatus - 1), $phoneNumber);
         return throwResponseOK('Handle status updated successfully');
     }
 

@@ -182,6 +182,10 @@ defined('ONEMSGIO_DEFAULT_CHATTEMPLATE_LANGUAGECODE')   || define('ONEMSGIO_DEFA
 
 defined('ECOMMERCE_PRIVATE_KEY')                        || define('ECOMMERCE_PRIVATE_KEY', $_ENV['ECOMMERCE_PRIVATE_KEY'] ?: 'WA.ROKETXPRESS-DFSAKJHG1009');
 
+defined('AIBOT_PRIVATE_KEY')                            || define('AIBOT_PRIVATE_KEY', $_ENV['AIBOT_PRIVATE_KEY'] ?: 'PRIVATE_KEY_HERE');
+defined('AIBOT_PUBLIC_KEY')                             || define('AIBOT_PUBLIC_KEY', $_ENV['AIBOT_PUBLIC_KEY'] ?: 'PUBLIC_KEY_HERE');
+defined('AIBOT_CHANGE_HANDLE_STATUS_URL')               || define('AIBOT_CHANGE_HANDLE_STATUS_URL', $_ENV['AIBOT_CHANGE_HANDLE_STATUS_URL'] ?: 'https://api.example.com/change_handle_status');
+
 defined('FIREBASE_PRIVATE_KEY_PATH')		            || define('FIREBASE_PRIVATE_KEY_PATH', APPPATH . $_ENV['FIREBASE_PRIVATE_KEY_PATH'] ?: 'default.json');
 
 defined('FIREBASE_PUBLIC_API_KEY')                      || define('FIREBASE_PUBLIC_API_KEY', $_ENV['FIREBASE_PUBLIC_API_KEY'] ?: 'AIopPPLLERjk1-7XXXXXXXXXXXXXXXXXX');
