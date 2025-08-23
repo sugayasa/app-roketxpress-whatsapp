@@ -215,12 +215,15 @@ class Chat extends ResourceController
                 $isIdUserAdminExists=   in_array($idUserAdmin, $arrIdUserAdminRead);
 
                 if(!$isIdUserAdminExists){
-                    $arrInsertChatDetailRead    =   [
-                        'IDUSERADMIN'     =>  $idUserAdmin,
-                        'IDCHATTHREAD'    =>  $idChatThread,
-                        'DATETIMEREAD'    =>  $this->currentTimeStamp
-                    ];
-                    $mainOperation->insertDataTable('t_chatdetailread', $arrInsertChatDetailRead);
+                    $isChatDetailReadExists     =   $mainOperation->isDataExist('t_chatdetailread', ['IDUSERADMIN' => $idUserAdmin, 'IDCHATTHREAD' => $idChatThread]);
+                    if(!isset($isChatDetailReadExists) || !$isChatDetailReadExists || is_null($isChatDetailReadExists)){
+                        $arrInsertChatDetailRead    =   [
+                            'IDUSERADMIN'     =>  $idUserAdmin,
+                            'IDCHATTHREAD'    =>  $idChatThread,
+                            'DATETIMEREAD'    =>  $this->currentTimeStamp
+                        ];
+                        $mainOperation->insertDataTable('t_chatdetailread', $arrInsertChatDetailRead);
+                    }
                 }
 
                 $mainOperation->updateDataTable('t_chatthread', ['STATUSREAD' => 1], ['IDCHATTHREAD' => $idChatThread]);
@@ -271,7 +274,6 @@ class Chat extends ResourceController
 
     public function sendMessage()
     {
-        helper(['form']);
         $oneMsgIO           =   new OneMsgIO();
         $mainOperation      =   new MainOperation();
         $currentTimeStamp   =   $this->currentTimeStamp;

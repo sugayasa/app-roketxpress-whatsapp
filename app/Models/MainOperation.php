@@ -164,6 +164,22 @@ class MainOperation extends Model
         }
     }
 
+    public function isDataExist($tableName, $arrField)
+    {
+        $db   =   \Config\Database::connect();
+        $table=   $db->table($tableName);
+        foreach($arrField as $field => $value){
+            if(is_array($value)){
+                $table->whereIn($field, $value);
+            } else {
+                $table->where($field, $value);
+            }
+        }
+        
+        $query  =   $table->get();
+        return $query->getNumRows() > 0 ? $query->getRowArray() : false;
+    }
+
     public function getDataSystemSetting($idSystemSetting)
     {	
         $this->select("DATASETTING");

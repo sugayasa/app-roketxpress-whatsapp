@@ -217,8 +217,17 @@
     					$("#chat-handleForce").val(handleForce);
 
 						if(handleForce == 0) {
-							if(handleStatus == 1) $("#chat-actionButton-activateBOT").prop('disabled', true).addClass('d-none');
-							if(handleStatus == 2) $("#chat-actionButton-activateBOT").prop('disabled', false).removeClass('d-none');
+							if(handleStatus == 1) {
+								$("#chat-actionButton-activateBOT").prop('disabled', true).addClass('d-none');
+								$("#chat-actionButton-activateHuman").prop('disabled', false).removeClass('d-none');
+							}
+							
+							if(handleStatus == 2) {
+								$("#chat-actionButton-activateBOT").prop('disabled', false).removeClass('d-none');
+								$("#chat-actionButton-activateHuman").prop('disabled', true).addClass('d-none');
+							}
+						} else {
+							$("#chat-actionButton-activateBOT, #chat-actionButton-activateHuman").prop('disabled', true).addClass('d-none');
 						}
 					}
 				}
@@ -272,13 +281,18 @@
 	});
 
 	onValue(forceHandleNumber, (snapshot) => {
-		let chatForceHandleNumber = snapshot.val();
+		let chatForceHandleNumber = snapshot.val(),
+			alarmForceHandleTabId = localStorage.getItem("intervalIdForceHandleChatList-tabId");
 
 		if(chatForceHandleNumber > 0){
 			playStoredAudio("warning_alarm");
-			intervalIdForceHandleChatList = setInterval(function () {
-				playStoredAudio("warning_alarm");
-			}, 30000);
+
+			if(alarmForceHandleTabId === null || alarmForceHandleTabId === tabId) {
+				intervalIdForceHandleChatList = setInterval(function () {
+					playStoredAudio("warning_alarm");
+				}, 30000);
+				localStorage.setItem("intervalIdForceHandleChatList-tabId", tabId);
+			}
 
 			intervalIdForceHandleChatMenu = setInterval(function () {
 				$("#menuCHT a").addClass('splashed-border');
@@ -287,6 +301,7 @@
 				}, 500);
 			}, 1000);
 		} else {
+			localStorage.removeItem("intervalIdForceHandleChatList-tabId");
 			if (intervalIdForceHandleChatList && intervalIdForceHandleChatList !== null) clearInterval(intervalIdForceHandleChatList);
 			if (intervalIdForceHandleChatMenu && intervalIdForceHandleChatMenu !== null) clearInterval(intervalIdForceHandleChatMenu);
 		}
