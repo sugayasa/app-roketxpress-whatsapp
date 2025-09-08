@@ -184,7 +184,9 @@ defined('ECOMMERCE_PRIVATE_KEY')                        || define('ECOMMERCE_PRI
 
 defined('AIBOT_PRIVATE_KEY')                            || define('AIBOT_PRIVATE_KEY', $_ENV['AIBOT_PRIVATE_KEY'] ?: 'PRIVATE_KEY_HERE');
 defined('AIBOT_PUBLIC_KEY')                             || define('AIBOT_PUBLIC_KEY', $_ENV['AIBOT_PUBLIC_KEY'] ?: 'PUBLIC_KEY_HERE');
-defined('AIBOT_CHANGE_HANDLE_STATUS_URL')               || define('AIBOT_CHANGE_HANDLE_STATUS_URL', $_ENV['AIBOT_CHANGE_HANDLE_STATUS_URL'] ?: 'https://api.example.com/change_handle_status');
+defined('AIBOT_BASE_URL')                               || define('AIBOT_BASE_URL', $_ENV['AIBOT_BASE_URL'] ?: 'https://api.example.com/');
+defined('AIBOT_CHANGE_HANDLE_STATUS_ENDPOINT')          || define('AIBOT_CHANGE_HANDLE_STATUS_ENDPOINT', $_ENV['AIBOT_CHANGE_HANDLE_STATUS_ENDPOINT'] ?: 'change_handle_status');
+defined('AIBOT_SEND_TEMPLATE_MESSAGE_ENDPOINT')         || define('AIBOT_SEND_TEMPLATE_MESSAGE_ENDPOINT', $_ENV['AIBOT_SEND_TEMPLATE_MESSAGE_ENDPOINT'] ?: 'send_template_message');
 
 defined('FIREBASE_PRIVATE_KEY_PATH')		            || define('FIREBASE_PRIVATE_KEY_PATH', APPPATH . $_ENV['FIREBASE_PRIVATE_KEY_PATH'] ?: 'default.json');
 

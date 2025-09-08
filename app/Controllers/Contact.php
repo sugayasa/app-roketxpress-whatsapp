@@ -246,8 +246,11 @@ class Contact extends ResourceController
                 $handleStatus = 2;
                 $aiBot->changeHandleStatus(($handleStatus - 1), $phoneNumber);
             }
-
-            if($messageTemplateGenerated) $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin, ['forceUpdate' => true, 'handleStatus' => $handleStatus]);
+            
+            if($messageTemplateGenerated) {
+                $aiBot->sendTemplateMessageToBOT($phoneNumber, $messageTemplateGenerated['body']);
+                $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin, ['forceUpdate' => true, 'handleStatus' => $handleStatus]);
+            }
             else return throwResponseInternalServerError('Failed to generate message from template. Please try again later');
             $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => 1], ['IDCONTACT' => $idContact]);
             return throwResponseOK('Message has been sent');

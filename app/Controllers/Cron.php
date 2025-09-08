@@ -7,6 +7,7 @@ use App\Controllers\BaseController;
 use App\Libraries\OneMsgIO;
 use App\Models\MainOperation;
 use App\Models\CronModel;
+use App\Libraries\AIBot;
 
 class Cron extends BaseController
 {
@@ -25,6 +26,7 @@ class Cron extends BaseController
     {
         echo date('Y-m-d H:i:s')." - Start\n";
 
+        $aiBot              =   new AIBot();
         $cronModel          =   new CronModel();
         $mainOperation      =   new MainOperation();
         $oneMsgIO           =   new OneMsgIO();
@@ -86,6 +88,7 @@ class Cron extends BaseController
                             $messageTemplateGenerated   =   $oneMsgIO->generateMessageFromTemplateAndParam($templateCode, $listOfTemplate, $arrParametersTemplate);
 
                             if($messageTemplateGenerated) {
+                                $aiBot->sendTemplateMessageToBOT($phoneNumber, $messageTemplateGenerated['body']);
                                 $idChatThread   =   $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, 1, ['forceUpdate' => true]);
                             
                                 $arrUpdateCron  =   [
