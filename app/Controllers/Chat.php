@@ -128,7 +128,7 @@ class Chat extends ResourceController
         $listChatThread     =   $chatModel->getListChatThread($idChatList, $page);
 
         if($listChatThread){
-            $listChatThread =   $this->generateListChatThread($listChatThread, true);
+            $listChatThread =   $this->generateListChatThread(array_reverse($listChatThread), true);
             $listChatThread =   encodeDatabaseObjectResultKey($listChatThread, 'IDCHATTHREAD', true);
             $mainOperation->updateChatListAndRTDBStats($idChatList, false);
         }

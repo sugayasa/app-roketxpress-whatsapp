@@ -7,7 +7,7 @@
                     <h5 class="font-size-16 mb-0 text-truncate">Contact Details</h5>
                 </span>
             </div>
-            <div class="card bg-light2 mb-2 w-100 rounded-3">
+            <div class="card bg-light mb-2 w-100 rounded-3">
                 <div class="card-body p-4">
                     <h4 class="mb-3 d-flex justify-content-between align-items-center">
                         <span id="detailContact-fullname">-</span>
