@@ -527,7 +527,6 @@ class MainOperation extends Model
         $this->orderBy('A.DATETIMECHAT DESC');
 
         $row    =   $this->get()->getRowArray();
-        log_message('debug', $this->getLastQuery());
         if(is_null($row)) return [];
         return $row;
     }

@@ -118,22 +118,27 @@ class ChatModel extends Model
     public function getListChatThread($idChatList, $page, $dataPerPage = 20)
     {	
         $pageOffset =   ($page - 1) * $dataPerPage;
-        $this->select("A.IDCHATTHREAD, A.IDMESSAGE, A.IDMESSAGEQUOTED, A.IDCHATTHREADTYPE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME,
-                    A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER, A.DATETIMECHAT, '' AS CHATTIME, '' AS DAYTITLE, '' AS MESSAGEQUOTED, 'Auto System' AS MESSAGEQUOTEDSENDER,
-                    A.STATUSREAD, A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, IF(A.ISBOT = 0, B.NAME, CONCAT(B.NAME, ' (Bot)'))) AS USERNAMECHAT,
-                    IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.CHATCAPTION, A.ISFORWARDED, A.ISTEMPLATE, A.ISBOT,
-                    IFNULL(CONCAT('[', GROUP_CONCAT(E.IDUSERADMIN), ']'), '[]') AS ARRIDUSERADMINREAD");
-        $this->from('t_chatthread A', true);
-        $this->join('m_useradmin AS B', 'A.IDUSERADMIN = B.IDUSERADMIN', 'LEFT');
-        $this->join('t_chatlist AS C', 'A.IDCHATLIST = C.IDCHATLIST', 'LEFT');
-        $this->join('t_contact AS D', 'C.IDCONTACT = D.IDCONTACT', 'LEFT');
-        $this->join('t_chatdetailread AS E', 'A.IDCHATTHREAD = E.IDCHATTHREAD', 'LEFT');
-        $this->where('A.IDCHATLIST', $idChatList);
-        $this->groupBy('A.IDCHATTHREAD');
-        $this->orderBy('A.DATETIMECHAT DESC, A.IDUSERADMIN ASC');
-        $this->limit($dataPerPage, $pageOffset);
-
-        $result     =   $this->get()->getResultObject();
+        $subQuery   =   $this->db->table('t_chatthread', true);
+        $subQuery->select(
+            'IDCHATTHREAD, IDMESSAGE, IDMESSAGEQUOTED, IDCHATTHREADTYPE, IDUSERADMIN, CHATCONTENTHEADER, CHATCONTENTBODY, CHATCONTENTFOOTER, DATETIMECHAT,
+            STATUSREAD, DATETIMESENT, DATETIMEDELIVERED, DATETIMEREAD, CHATCAPTION, ISFORWARDED, ISTEMPLATE, ISBOT, IDCHATLIST'
+        );
+        $subQuery->where('IDCHATLIST', $idChatList);
+        $subQuery->orderBy('DATETIMECHAT DESC, IDUSERADMIN ASC');
+        $subQuery->limit($dataPerPage, $pageOffset);
+        $subQueryString =   $subQuery->getCompiledSelect();
+        $queryString    =   "SELECT A.IDCHATTHREAD, A.IDMESSAGE, A.IDMESSAGEQUOTED, A.IDCHATTHREADTYPE, IF(A.IDUSERADMIN = 0, LEFT(D.NAMEFULL, 1), LEFT(B.NAME, 1)) AS INITIALNAME,
+                                A.CHATCONTENTHEADER, A.CHATCONTENTBODY, A.CHATCONTENTFOOTER, A.DATETIMECHAT, '' AS CHATTIME, '' AS DAYTITLE, '' AS MESSAGEQUOTED, 'Auto System' AS MESSAGEQUOTEDSENDER,
+                                A.STATUSREAD, A.DATETIMESENT, A.DATETIMEDELIVERED, A.DATETIMEREAD, IF(A.IDUSERADMIN = 0, D.NAMEFULL, IF(A.ISBOT = 0, B.NAME, CONCAT(B.NAME, ' (Bot)'))) AS USERNAMECHAT,
+                                IF(A.IDUSERADMIN = 0, 'L', 'R') AS CHATTHREADPOSITION, A.CHATCAPTION, A.ISFORWARDED, A.ISTEMPLATE, A.ISBOT,
+                                IFNULL(CONCAT('[', GROUP_CONCAT(E.IDUSERADMIN), ']'), '[]') AS ARRIDUSERADMINREAD
+                            FROM ({$subQueryString}) AS A
+                            LEFT JOIN m_useradmin B ON A.IDUSERADMIN = B.IDUSERADMIN
+                            LEFT JOIN t_chatlist C ON A.IDCHATLIST = C.IDCHATLIST
+                            LEFT JOIN t_contact D ON C.IDCONTACT = D.IDCONTACT
+                            LEFT JOIN t_chatdetailread E ON A.IDCHATTHREAD = E.IDCHATTHREAD
+                            GROUP BY A.IDCHATTHREAD";
+        $result     =   $this->db->query($queryString)->getResultObject();
 
         if(is_null($result)) return false;
         return $result;
