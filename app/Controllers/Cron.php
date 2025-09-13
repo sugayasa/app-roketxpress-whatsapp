@@ -5,6 +5,7 @@ use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\I18n\Time;
 use App\Controllers\BaseController;
 use App\Libraries\OneMsgIO;
+use App\Libraries\WhatsappMessage;
 use App\Models\MainOperation;
 use App\Models\CronModel;
 use App\Libraries\AIBot;
@@ -205,5 +206,31 @@ class Cron extends BaseController
             "parameters"=>  $oneMsgIO->generateParametersTemplate($arrParameters)
         ];
         return is_array($arrParameters) && count($arrParameters) > 0 ? $returnArrayParameters : null;
+    }
+
+    public function getHistoryMessages()
+    {
+        echo date('Y-m-d H:i:s')." - Start<br/>\n";
+
+        $oneMsgIO       =   new OneMsgIO();
+        $historyMessages=   $oneMsgIO->getHistoryMessage();
+
+        try{
+            $whatsappMessage=   new WhatsappMessage();
+            foreach($historyMessages["messages"] as $message){
+                $procSaveMessage    =   $whatsappMessage->saveWebhookMessage($message, date('Y-m-d H:i:s'));
+                
+                if($procSaveMessage) {
+                    echo "Message id :: {$message['id']} saved successfully<br/>\n";
+                } else {
+                    echo "Failed to save message id :: {$message['id']}<br/>\n";
+                }
+            }
+        } catch (\Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "<br/>\n";
+        }
+
+        echo date('Y-m-d H:i:s')." - Done";
+        die();
     }
 }

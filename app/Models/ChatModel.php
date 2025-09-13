@@ -73,6 +73,8 @@ class ChatModel extends Model
                             $this->where('A.TOTALUNREADMESSAGE > ', 0);
                         }
                         break;
+            case 3  :   $this->where('A.HANDLEFORCE', 1);
+                        break;
             default :   if(is_array($arrReservationType) && count($arrReservationType) > 0){
                             $this->groupStart();
                             $this->where("B.ARRIDRESERVATIONTYPE", "");

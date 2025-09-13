@@ -55,8 +55,6 @@ class OneMsgIO
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($jsonData));
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-        $logger->info('endPoint:' . $endPoint);
-        $logger->info('jsonData:' . json_encode($jsonData));
 
         try {
             $response   =   curl_exec($ch);
@@ -115,6 +113,29 @@ class OneMsgIO
         $ch         =   curl_init();
         $jsonData   =   $this->getJsonDataConfig();
         curl_setopt($ch, CURLOPT_URL, ONEMSGIO_CHANNEL_URL."templates");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($jsonData));
+
+        try {
+            $response = curl_exec($ch);
+            if (curl_errno($ch)) {
+                return [];
+            } else {
+                return json_decode($response, true);
+            }
+        } catch (\Throwable $th) {
+            return [];
+        }
+        curl_close($ch);
+    }
+
+    public function getHistoryMessage()
+    {
+        $ch         =   curl_init();
+        $jsonData   =   $this->getJsonDataConfig();
+        curl_setopt($ch, CURLOPT_URL, ONEMSGIO_CHANNEL_URL."messages");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));

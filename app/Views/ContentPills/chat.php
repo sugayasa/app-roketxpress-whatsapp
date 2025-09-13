@@ -26,6 +26,9 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link font-size-12 py-1" type="button" id="pills-home-tab" data-chatType='2' data-bs-toggle="pill" role="tab" aria-selected="false">Unread</button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link font-size-12 py-1" type="button" id="pills-home-tab" data-chatType='3' data-bs-toggle="pill" role="tab" aria-selected="false">Force Handle</button>
+                    </li>
                 </ul>                
             </div>
         </div>
