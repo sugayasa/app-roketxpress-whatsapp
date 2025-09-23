@@ -264,7 +264,8 @@ class Chat extends ResourceController
 
                 if($messageQuoted != ""){
                     $messageQuotedArr               =   explode("\n", $messageQuoted);
-                    $keyChatThread->MESSAGEQUOTED   =   strlen($messageQuotedArr[0]) > 50 ? substr($messageQuotedArr[0], 0, 50)."..." : $messageQuotedArr[0];
+                    mb_internal_encoding("UTF-8");
+                    $keyChatThread->MESSAGEQUOTED   =   mb_strlen($messageQuotedArr[0]) > 50 ? mb_substr($messageQuotedArr[0], 0, 50)."..." : $messageQuotedArr[0];
                 }
                 $keyChatThread->MESSAGEQUOTEDSENDER   =   $messageQuotedDetail['MESSAGEQUOTEDSENDER'] ?? '-';
             }
