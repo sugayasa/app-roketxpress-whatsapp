@@ -99,6 +99,18 @@ class ChatModel extends Model
         return $result;
     }
 
+    public function getInactiveForceHandleChatList($timeStamp24HoursAgo) : array
+    {
+        $this->select("IDCHATLIST");
+        $this->from('t_chatlist', true);
+        $this->where('HANDLEFORCE', 1);
+        $this->where('DATETIMELASTREPLY < ', $timeStamp24HoursAgo);
+
+        $result     =   $this->get()->getResultObject();
+        if(is_null($result)) return [];
+        return $result;
+    }
+
     public function getDetailContactChat($idChatList)
     {	
         $this->select("A.HANDLESTATUS, A.HANDLEFORCE, LEFT(B.NAMEFULL, 1) AS NAMEALPHASEPARATOR, B.NAMEFULL, B.PHONENUMBER, C.COUNTRYNAME,

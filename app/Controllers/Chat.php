@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 use CodeIgniter\I18n\Time;
 use App\Libraries\AIBot;
 use App\Libraries\OneMsgIO;
+use App\Libraries\FirebaseRTDB;
 use App\Models\MainOperation;
 use App\Models\ChatModel;
 
@@ -39,6 +40,7 @@ class Chat extends ResourceController
 
     public function getDataChatList()
     {
+        $this->updateForceHandleInactiveSession();
         $chatModel          =   new ChatModel();
         $page               =   $this->request->getVar('page');
         $searchKeyword      =   $this->request->getVar('searchKeyword');
@@ -101,6 +103,32 @@ class Chat extends ResourceController
         } else {
             return throwResponseNotFound('No conversation found');
         }
+    }
+
+    private function updateForceHandleInactiveSession(){
+        $chatModel          =   new ChatModel();
+        $currentTimeStamp   =   Time::createFromTimestamp($this->currentTimeStamp, 'UTC');
+        $time24HoursAgo     =   $currentTimeStamp->modify('-24 hours');
+        $timeStamp24HoursAgo=   $time24HoursAgo->getTimestamp();
+        $inactiveChatList   =   $chatModel->getInactiveForceHandleChatList($timeStamp24HoursAgo);
+        
+        if($inactiveChatList){
+            $firebaseRTDB   =   new FirebaseRTDB();
+            $mainOperation  =   new MainOperation();
+
+            foreach($inactiveChatList as $keyInactiveChatList){
+                $idChatList =   $keyInactiveChatList->IDCHATLIST;
+                $mainOperation->updateDataTable('t_chatlist', ['HANDLEFORCE' => 0], ['IDCHATLIST' => $idChatList]);
+            }
+
+            $firebaseRTDB->updateRealtimeDatabaseMultiValue(
+                [
+                    'forceHandleNumber' =>  $mainOperation->getTotalForceHandle()
+                ]
+            );
+        }
+
+        return true;
     }
     
     public function getDetailChat()
