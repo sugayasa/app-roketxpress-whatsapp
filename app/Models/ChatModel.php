@@ -65,7 +65,7 @@ class ChatModel extends Model
                             $this->where("B.ARRIDRESERVATIONTYPE", "");
                             $this->orWhere("B.ARRIDRESERVATIONTYPE IS NULL");
                             foreach($arrReservationType as $index => $idReservationType){
-                                $this->orWhere("JSON_CONTAINS(B.ARRIDRESERVATIONTYPE, $idReservationType, '$')", null, false);
+                                $this->orWhere("JSON_CONTAINS(IFNULL(B.ARRIDRESERVATIONTYPE, '[]'), '".$idReservationType."')");
                             }
                             $this->groupEnd();
                             $this->groupEnd();
@@ -79,7 +79,7 @@ class ChatModel extends Model
                             $this->groupStart();
                             $this->where("B.ARRIDRESERVATIONTYPE", "");
                             foreach($arrReservationType as $index => $idReservationType){
-                                $this->orWhere("JSON_CONTAINS(B.ARRIDRESERVATIONTYPE, $idReservationType, '$')", null, false);
+                                $this->orWhere("JSON_CONTAINS(IFNULL(B.ARRIDRESERVATIONTYPE, '[]'), '".$idReservationType."')");
                             }
                             $this->groupEnd();
                         }
@@ -95,6 +95,7 @@ class ChatModel extends Model
         $this->limit($dataPerPage, $pageOffset);
 
         $result =   $this->get()->getResultObject();
+        log_message('debug', 'query :: ' . $this->getLastQuery());
         if(is_null($result)) return false;
         return $result;
     }
