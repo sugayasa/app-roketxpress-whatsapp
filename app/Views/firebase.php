@@ -168,11 +168,11 @@
 													</a>\
 												</li>';
 						
-						if(addChatList) {
+						// if(addChatList) {
 							$("#list-chatListData").prepend(chatListItemHtml);
 							activateOnClickChatListItem();
 							counterTimeChatList();
-						}
+						// }
 					}
 				}
 				counterTimeChatList();
