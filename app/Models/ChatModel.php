@@ -95,7 +95,6 @@ class ChatModel extends Model
         $this->limit($dataPerPage, $pageOffset);
 
         $result =   $this->get()->getResultObject();
-        log_message('debug', 'query :: ' . $this->getLastQuery());
         if(is_null($result)) return false;
         return $result;
     }

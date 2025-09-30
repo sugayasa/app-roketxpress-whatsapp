@@ -50,11 +50,11 @@ class Chat extends ResourceController
         $idContact          =   isset($idContact) && !is_null($idContact) && $idContact != '' ? hashidDecode($idContact) : null;
         $dataPerPage        =   50;
 
-        if(is_array($arrReservationType) && count($arrReservationType) > 0){
-            $arrReservationType =   array_map(function($item){
-                return hashidDecode($item, true);
-            }, $arrReservationType);
-        }
+        // if(is_array($arrReservationType) && count($arrReservationType) > 0){
+        //     $arrReservationType =   array_map(function($item){
+        //         return hashidDecode($item, true);
+        //     }, $arrReservationType);
+        // }
 
         $dataChatList       =   $chatModel->getDataChatList($page, $dataPerPage, $searchKeyword, $chatType, $idContact, $arrReservationType);
         $totalData          =   0;
