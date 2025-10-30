@@ -644,4 +644,121 @@ class MainOperation extends Model
         if(is_null($row)) return ["MESSAGEQUOTED" => '', "MESSAGEQUOTEDSENDER" => ''];
         return $row;
     }
+
+    public function getDetailReservationById($idReservation)
+    {	
+        $this->select("BOOKINGCODE AS bookingCode, RESERVATIONTITLE AS reservationTitle, RESERVATIONDATESTART AS reservationDate, RESERVATIONTIMESTART AS reservationTime, DURATIONOFDAY AS durationOfDay,
+                    CUSTOMERNAME AS customerName, CUSTOMERCONTACT AS customerContact, CUSTOMEREMAIL AS customerEmail, HOTELNAME AS hotelName, PICKUPLOCATION AS pickupLocation,
+                    DROPOFFLOCATION AS dropoffLocation, NUMBEROFADULT AS numberOfAdult, NUMBEROFCHILD AS numberOfChild, NUMBEROFINFANT AS numberOfInfant, SPECIALREQUEST AS specialRequest,
+                    REMARK AS remark, TOURPLAN AS tourPlan, URLDETAILPRODUCT AS urlDetailProduct, URLPICKUPLOCATION AS urlPickupLocation, '[]' AS handleDriver, '[]' AS handleVendorTicket,
+                    IFNULL(IF(IDAREA = -1, 0, 1), 0) AS transportStatus, '' AS transportType");
+        $this->from(APP_MAIN_DATABASE_NAME.'.t_reservation', true);
+        $this->where("IDRESERVATION", $idReservation);
+
+        $result =   $this->get()->getResultObject();
+
+        if(is_null($result)) return [];
+
+        foreach($result as $keyData){
+            $dataHandleDriver		=	$this->getReservationHandleDriver($idReservation);
+            $dataHandleVendorTicket	=	$this->getReservationHandleVendorTicket($idReservation);
+            $dataReservationDetails	=	$this->getListReservationDetails($idReservation);
+		    $arrDataHandleDriver	=	$arrDataHandleVendorTicket	=	[];
+		    $transportType			=	'';
+
+            if($dataHandleDriver){
+                foreach($dataHandleDriver as $keyHandleDriver){
+                    $arrDataHandleDriver[]	=	[
+                        'scheduleDate'		=>	$keyHandleDriver->SCHEDULEDATE,
+                        'driverName'		=>	$keyHandleDriver->PARTNERNAME,
+                        'driverPhoneNumber'	=>	$keyHandleDriver->DRIVERPHONENUMBER,
+                        'carBrandModel'		=>	$keyHandleDriver->CARBRANDMODEL,
+                        'carNumberPlate'	=>	$keyHandleDriver->CARNUMBERPLATE
+                    ];
+                }
+            }
+            
+            if($dataHandleVendorTicket){
+                foreach($dataHandleVendorTicket as $keyHandleVendorTicket){
+                    $arrDataHandleVendorTicket[]	=	[
+                        'scheduleDate'		=>	$keyHandleVendorTicket->SCHEDULEDATE,
+                        'vendorName'		=>	$keyHandleVendorTicket->PARTNERNAME,
+                        'vendorAddress'		=>	$keyHandleVendorTicket->ADDRESS
+                    ];
+                }
+            }
+            
+            if($dataReservationDetails){
+                foreach($dataReservationDetails as $keyReservationDetails){
+                    if(intval($keyReservationDetails->IDDRIVERTYPE) != 0){
+                        $transportType	=	$keyReservationDetails->DRIVERTYPE;
+                        break;
+                    }
+                }
+            }
+            
+            $keyData->durationOfDay     =	intval($keyData->durationOfDay);
+            $keyData->numberOfAdult		=	intval($keyData->numberOfAdult);
+            $keyData->numberOfChild		=	intval($keyData->numberOfChild);
+            $keyData->numberOfInfant    =	intval($keyData->numberOfInfant);
+            $keyData->handleDriver      =	$arrDataHandleDriver;
+            $keyData->handleVendorTicket=	$arrDataHandleVendorTicket;
+            $keyData->transportStatus   =	intval($keyData->transportStatus);
+            $keyData->transportType		=	$transportType;
+        }
+
+        return $result;
+    }
+	
+	private function getReservationHandleDriver($idReservation){
+        $this->select("CONCAT(D.DRIVERTYPE, ' Driver') AS PARTNERTYPE, C.NAME AS PARTNERNAME, DATE_FORMAT(A.SCHEDULEDATE, '%d %b %Y') AS SCHEDULEDATE, A.NOMINAL, 
+                    B.DRIVERPHONENUMBER, B.CARBRANDMODEL, B.CARNUMBERPLATE");
+        $this->from(APP_MAIN_DATABASE_NAME.'.t_reservationdetails A', true);
+        $this->join(APP_MAIN_DATABASE_NAME.'.t_scheduledriver AS B', 'A.IDRESERVATIONDETAILS = B.IDRESERVATIONDETAILS', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_driver AS C', 'B.IDDRIVER = C.IDDRIVER', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_drivertype AS D', 'C.IDDRIVERTYPE = D.IDDRIVERTYPE', 'LEFT');
+        $this->where("A.IDRESERVATION", $idReservation);
+        $this->where("A.STATUS", 1);
+        $this->where("B.IDSCHEDULEDRIVER IS NOT NULL");
+        $this->orderBy("D.DRIVERTYPE, C.NAME");
+
+        $result =   $this->get()->getResultObject();
+        if(is_null($result)) return [];
+		return $result;	
+	}
+	
+	private function getReservationHandleVendorTicket($idReservation){
+        $this->select("'Ticket Vendor' AS PARTNERTYPE, B.NAME AS PARTNERNAME, B.ADDRESS, DATE_FORMAT(A.SCHEDULEDATE, '%d %b %Y') AS SCHEDULEDATE, A.NOMINAL, A.VOUCHERSTATUS");
+        $this->from(APP_MAIN_DATABASE_NAME.'.t_reservationdetails A', true);
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_vendor AS B', 'A.IDVENDOR = B.IDVENDOR', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_vendortype AS C', 'B.IDVENDORTYPE = C.IDVENDORTYPE', 'LEFT');
+        $this->where("A.IDRESERVATION", $idReservation);
+        $this->where("A.STATUS", 1);
+        $this->where("A.IDVENDOR IS NOT NULL");
+        $this->where("A.IDVENDOR != 0");
+        $this->where("C.IDVENDORTYPE", 2);
+        $this->orderBy("B.NAME");
+
+        $result =   $this->get()->getResultObject();
+        if(is_null($result)) return [];
+		return $result;
+	}
+	
+	private function getListReservationDetails($idReservation){
+        $this->select("A.IDRESERVATIONDETAILS, A.IDPRODUCTTYPE, B.PRODUCTTYPE, C.NAME AS VENDORNAME, A.VOUCHERSTATUS, IFNULL(CONCAT('Driver ', D.DRIVERTYPE), '') AS DRIVERTYPE,
+                    E.CARTYPE, A.DURATION, A.PRODUCTNAME, A.NOMINAL, A.NOTES, DATE_FORMAT(A.SCHEDULEDATE, '%d %b %Y') AS DATESCHEDULE, A.USERINPUT,
+                    DATE_FORMAT(A.DATETIMEINPUT, '%d %b %Y %H:%i:%s') AS DATETIMEINPUT, A.IDVENDOR, A.VOUCHERSTATUS, A.IDDRIVERTYPE");
+        $this->from(APP_MAIN_DATABASE_NAME.'.t_reservationdetails A', true);
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_producttype AS B', 'A.IDPRODUCTTYPE = B.IDPRODUCTTYPE', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_vendor AS C', 'A.IDVENDOR = C.IDVENDOR', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_drivertype AS D', 'A.IDDRIVERTYPE = D.IDDRIVERTYPE', 'LEFT');
+        $this->join(APP_MAIN_DATABASE_NAME.'.m_cartype AS E', 'A.IDCARTYPE = E.IDCARTYPE', 'LEFT');
+        $this->where("A.IDRESERVATION", $idReservation);
+        $this->where("A.STATUS", 1);
+        $this->orderBy("A.SCHEDULEDATE, B.PRODUCTTYPE");
+
+        $result =   $this->get()->getResultObject();
+        if(is_null($result)) return [];
+		return $result;
+	}
 }

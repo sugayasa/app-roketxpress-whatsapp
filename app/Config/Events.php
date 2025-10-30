@@ -54,7 +54,7 @@ Events::on('DBQuery', static function (Query $query) {
     $duration       =   $query->getDuration();
     $errorMessage   =   $query->hasError() ? ' - Error: ' . $query->getErrorMessage() : '';
 
-    if ($duration > 0.2) {
+    if ($duration > 0.8) {
         log_message('info', 'SQL Query: {query} - Duration: {duration} seconds {error}', [
             'query'     => $sql,
             'duration'  => $duration,

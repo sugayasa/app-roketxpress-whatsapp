@@ -34,7 +34,7 @@ class AIBot
 		];
     }
 
-    public function sendTemplateMessageToBOT($clientPhone, $message)
+    public function sendTemplateMessageToBOT($clientPhone, $message, $detailReservationsData)
     {
         $response	=	"";
 	    $httpCode	=	500;
@@ -42,9 +42,9 @@ class AIBot
 		try {
             $timeStamp          =   time();
             $arrPostData        =   [
-                'client_phone'  =>  $clientPhone,
-                'timestamp'     =>  $timeStamp,
-                'text'          =>  $message
+                'text'              =>  json_encode($detailReservationsData),
+                'client_phone'      =>  $clientPhone,
+                'initiate_booking'  =>  'true'
             ];
 
             $curl       =   $this->executeAIBOTEndpoint($timeStamp, $arrPostData, AIBOT_SEND_TEMPLATE_MESSAGE_ENDPOINT, 2);
@@ -69,9 +69,6 @@ class AIBot
             'timestamp'     =>  $timeStamp
         ];
         $hmacSignature  =   $this->getSignatureAIBot($arrDataSignature);
-        log_message('debug', 'endPoint:' . AIBOT_BASE_URL.$endPoint);
-        log_message('debug', 'jsonData:' . json_encode($arrPostData));
-
 
         curl_setopt_array($curl, array(
             CURLOPT_URL				=>	AIBOT_BASE_URL.$endPoint,

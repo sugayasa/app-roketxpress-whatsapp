@@ -128,8 +128,8 @@ class Contact extends ResourceController
 
         if($listDetailReservation){
             foreach($listDetailReservation as $keyDetailReservation){
-                $idReservartion         =   $keyDetailReservation->IDRESERVATION;
-                $listTemplateMessage    =   $contactModel->getListTemplateMessage($idReservartion);
+                $idReservation          =   $keyDetailReservation->IDRESERVATION;
+                $listTemplateMessage    =   $contactModel->getListTemplateMessage($idReservation);
                 $reservationDateStart   =   $keyDetailReservation->RESERVATIONDATESTART;
                 $reservationDateStartDT =   new Time($reservationDateStart);
                 $currentDateDT          =   new Time();
@@ -163,6 +163,7 @@ class Contact extends ResourceController
         helper(['form']);
         $rules      =   [
             'idContact'         =>  ['label' => 'Contact Data', 'rules' => 'required|alpha_numeric'],
+            'idReservation'     =>  ['label' => 'Contact Data', 'rules' => 'permit_empty|alpha_numeric'],
             'phoneNumber'       =>  ['label' => 'Contact Data', 'rules' => 'required|numeric'],
             'templateData'      =>  ['label' => 'Template Data', 'rules' => 'required|is_array'],
             'templateParameters'=>  ['label' => 'Template Data', 'rules' => 'required|is_array']
@@ -171,6 +172,9 @@ class Contact extends ResourceController
         $messages   =   [
             'idContact'     => [
                 'required'      => 'Invalid data sent',
+                'alpha_numeric' => 'Invalid data sent'
+            ],
+            'idReservation' => [
                 'alpha_numeric' => 'Invalid data sent'
             ],
             'phoneNumber'   => [
@@ -194,10 +198,12 @@ class Contact extends ResourceController
         $mainOperation              =   new MainOperation();
         $currentTimeStamp           =   $this->currentTimeStamp;
         $idContact                  =   $this->request->getVar('idContact');
+        $idReservation              =   $this->request->getVar('idReservation');
         $phoneNumber                =   $this->request->getVar('phoneNumber');
         $templateData               =   $this->request->getVar('templateData');
         $templateParameters         =   $this->request->getVar('templateParameters');
         $idContact                  =   hashidDecode($idContact);
+        $idReservation              =   isset($idReservation) && $idReservation != '' ?  hashidDecode($idReservation) : null;
         $idChatTemplate             =   hashidDecode($templateData->IDCHATTEMPLATE);
         $templateName               =   $templateData->TEMPLATECODE;
         $templateLanguageCode       =   $templateData->TEMPLATELANGUAGECODE;
@@ -248,8 +254,11 @@ class Contact extends ResourceController
             }
             
             if($messageTemplateGenerated) {
-                $aiBot->sendTemplateMessageToBOT($phoneNumber, $messageTemplateGenerated['body']);
+                $detailReservationsData =   $mainOperation->getDetailReservationById($idReservation);
+                $aiBOTTemplateResponse  =   $aiBot->sendTemplateMessageToBOT($phoneNumber, $messageTemplateGenerated['body'], $detailReservationsData);
                 $mainOperation->insertUpdateChatTable($currentTimeStamp, $idContact, $idMessage, $messageTemplateGenerated, $idUserAdmin, ['forceUpdate' => true, 'handleStatus' => $handleStatus]);
+                
+                if(ENVIRONMENT === 'development') log_message("debug", "aiBOTTemplateResponse :: ". json_encode($aiBOTTemplateResponse));
             }
             else return throwResponseInternalServerError('Failed to generate message from template. Please try again later');
             $mainOperation->updateDataTable('t_contact', ['ISVALIDWHATSAPP' => 1], ['IDCONTACT' => $idContact]);
